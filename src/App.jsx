@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import Cursor from './components/Cursor'
 import HomePage from './pages/HomePage'
 import CelestialPage from './pages/CelestialPage'
@@ -8,14 +8,15 @@ import './index.css'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Cursor />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/celestial" element={<CelestialPage />} />
         <Route path="/branding" element={<BrandingPage />} />
         <Route path="/labs" element={<LabsPage />} />
+        <Route path="*" element={<HomePage />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }

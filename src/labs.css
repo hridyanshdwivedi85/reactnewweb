@@ -155,7 +155,7 @@ body.music-active .nav-area {
     inset: 0;
     background:
         linear-gradient(160deg, rgba(3, 3, 3, 0.92), rgba(14, 14, 14, 0.9)),
-        url('assets/media/music-wallpaper.jpg') center/cover no-repeat;
+        url('/assets/images/cover.jpg') center/cover no-repeat;
     filter: grayscale(1) contrast(1.16) brightness(0.36);
 }
 

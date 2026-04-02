@@ -89,6 +89,7 @@ export default function LabsPage() {
   const touchStartX = useRef(null)
   const scriptRef = useRef(null)
   const gsapLoadedRef = useRef(false)
+  const legacyBootedRef = useRef(false)
   const bgCanvasRef = useRef(null)
   const bgEngineRef = useRef(null)
 
@@ -107,6 +108,9 @@ export default function LabsPage() {
 
   /* ── Load GSAP + FontAwesome + legacy JS once ── */
   useEffect(() => {
+    if (legacyBootedRef.current) return
+    legacyBootedRef.current = true
+
     const loadGSAP = () => new Promise((resolve) => {
       if (window.gsap) { resolve(); return }
       const s = document.createElement('script')
@@ -126,18 +130,24 @@ export default function LabsPage() {
 
     loadFA()
     loadGSAP().then(() => {
-      const script = document.createElement('script')
-      script.src = '/labs_legacy.js'
-      script.onload = () => {
+      const bootstrapLabs = () => {
         gsapLoadedRef.current = true
         if (window.initLabs) window.initLabs()
-        // Re-initialise the BGEngine against our canvas
         if (window.BGEngine && bgCanvasRef.current) {
           window.BGEngine.canvas = bgCanvasRef.current
           window.BGEngine.init()
         }
         setTimeout(() => activateModule(0), 400)
       }
+
+      if (window.initLabs) {
+        bootstrapLabs()
+        return
+      }
+
+      const script = document.createElement('script')
+      script.src = '/labs_legacy.js'
+      script.onload = bootstrapLabs
       document.body.appendChild(script)
       scriptRef.current = script
     })

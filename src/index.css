@@ -474,8 +474,8 @@ h2.landing-info-h2 {
 
 @media screen and (min-width: 1025px) {
   .character-model {
-    height: 100vh;
-    bottom: 0;
+    height: min(90vh, 920px);
+    bottom: -12px;
     z-index: 11;
     position: fixed;
   }
@@ -1409,4 +1409,3 @@ h2.landing-info-h2 {
   background: transparent !important;
 }
 #offline-resources { display: none !important; }
-

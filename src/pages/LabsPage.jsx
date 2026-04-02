@@ -132,7 +132,10 @@ export default function LabsPage() {
     loadGSAP().then(() => {
       const bootstrapLabs = () => {
         gsapLoadedRef.current = true
-        if (window.initLabs) window.initLabs()
+        if (window.initLabs && !window.__labsInitDone) {
+          window.initLabs()
+          window.__labsInitDone = true
+        }
         if (window.BGEngine && bgCanvasRef.current) {
           window.BGEngine.canvas = bgCanvasRef.current
           window.BGEngine.init()

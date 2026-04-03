@@ -1,6 +1,6 @@
 import { Suspense, useRef, useState, useEffect, useMemo } from 'react'
 import { Canvas, useLoader } from '@react-three/fiber'
-import { OrbitControls, Environment } from '@react-three/drei'
+import { OrbitControls, Environment, useProgress } from '@react-three/drei'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
 import { TextureLoader, MeshStandardMaterial, Box3, Vector3 } from 'three'
@@ -110,7 +110,7 @@ function Scene({ idx }) {
   return (
     <>
       <ambientLight intensity={0.5} />
-      <spotLight position={[4, 8, 4]} intensity={2.5} castShadow angle={0.3} penumbra={0.6} color={accentColor} />
+      <spotLight position={[4, 8, 4]} intensity={2.0} castShadow={false} angle={0.3} penumbra={0.6} color={accentColor} />
       <pointLight position={[-4, 1, -2]} intensity={1.5} color={accentColor} />
       <pointLight position={[0, -2, 4]} intensity={0.8} color="#ffffff" />
       <Environment preset="city" />
@@ -144,14 +144,16 @@ function LoaderFallback({ accent }) {
 
 export default function ShoeViewer({ isMobile }) {
   const [idx, setIdx] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
+  const [webglFailed, setWebglFailed] = useState(false)
+  const [canvasKey, setCanvasKey] = useState(0)
+  const [isIOS, setIsIOS] = useState(false)
+  const { active } = useProgress()
   const shoe = SHOES[idx]
 
   useEffect(() => {
-    setIsLoading(true)
-    const t = setTimeout(() => setIsLoading(false), 2000)
-    return () => clearTimeout(t)
-  }, [idx])
+    const ua = navigator.userAgent || ''
+    setIsIOS(/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+  }, [])
 
   const prev = () => setIdx(i => Math.max(i - 1, 0))
   const next = () => setIdx(i => Math.min(i + 1, SHOES.length - 1))
@@ -173,25 +175,52 @@ export default function ShoeViewer({ isMobile }) {
 
       {/* 3D Canvas */}
       <div style={{ position: 'absolute', inset: 0 }}>
-        {isLoading && <LoaderFallback accent={shoe.accent} />}
-        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.5, 3.5], fov: 42 }} shadows gl={{ antialias: false, alpha: true, powerPreference: 'low-power' }}>
+        {active && !webglFailed && <LoaderFallback accent={shoe.accent} />}
+        {!webglFailed ? (
+          <Canvas
+            key={canvasKey}
+            dpr={isMobile || isIOS ? [0.7, 1] : [1, 1.5]}
+            camera={{ position: [0, 0.5, 3.5], fov: 42 }}
+            shadows={false}
+            gl={{ antialias: false, alpha: true, powerPreference: isMobile || isIOS ? 'high-performance' : 'default' }}
+            onCreated={({ gl }) => {
+              gl.domElement.addEventListener('webglcontextlost', (e) => {
+                e.preventDefault()
+                setWebglFailed(true)
+              }, { passive: false, once: true })
+            }}
+          >
           <Suspense fallback={null}>
             <Scene idx={idx} />
           </Suspense>
           <OrbitControls 
             enableZoom={true} // Allow zooming to interact more
             autoRotate 
-            autoRotateSpeed={1.5}
+            autoRotateSpeed={isMobile ? 1.2 : 1.5}
             minPolarAngle={Math.PI * 0.1} 
             maxPolarAngle={Math.PI * 0.85} 
           />
-        </Canvas>
+          </Canvas>
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 12, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 10, background: 'rgba(6,6,14,0.9)',
+            color: '#fff', fontFamily: 'JetBrains Mono, monospace', textAlign: 'center', padding: 20
+          }}>
+            <img src="assets/images/nike_glow_shoe.png" alt="Shoe preview" style={{ width: 'min(62vw,280px)', opacity: 0.92 }} />
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>3D mode reset on this device.</div>
+            <button onClick={() => { setWebglFailed(false); setCanvasKey(v => v + 1) }} style={{
+              padding: '8px 14px', borderRadius: 7, border: `1px solid ${shoe.accent}88`,
+              color: shoe.accent, background: 'rgba(0,0,0,0.45)', cursor: 'pointer', fontFamily: 'inherit'
+            }}>Retry 3D</button>
+          </div>
+        )}
       </div>
 
       {/* Make it more obvious it's interactive */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        pointerEvents: 'none', zIndex: 10, opacity: isLoading ? 0 : 0.8,
+        pointerEvents: 'none', zIndex: 10, opacity: active ? 0 : 0.8,
         animation: 'fadeOutPointer 4s forwards'
       }}>
         <div style={{

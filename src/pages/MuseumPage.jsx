@@ -18,6 +18,9 @@ const MOVE_SPEED     = 5.5
 const SPRINT_SPEED   = 11
 const INTERACT_DIST  = 4.5   // metres for E-key annotation
 const MOBILE_LOOK_SENSITIVITY = 0.0028
+const HUD_UPDATE_MS = 80
+const HUD_MOVE_EPSILON = 0.22
+const MOBILE_LOAD_RADIUS = ROOM_SPACING * 1.35
 
 const ROOM_LINKS = {
   armoury: 'billiards',
@@ -73,8 +76,6 @@ const MUSEUM_ROOMS = [
     desc: 'The grand upper landing connecting the main staircase to the private apartments on the first floor.' },
 ]
 
-MUSEUM_ROOMS.forEach(r => useGLTF.preload(BASE_URL + r.file))
-
 function roomWorldPos(room) { return { x: room.col * ROOM_SPACING, z: room.row * ROOM_SPACING } }
 
 function nearestRoom(x, z) {
@@ -97,6 +98,7 @@ function getRoomById(id) {
 ═══════════════════════════════════════════════════════════ */
 const collisionMeshes = []
 const registeredScenes = new WeakSet()
+const HOTSPOT_CACHE = new Map()
 
 function registerScene(scene) {
   if (registeredScenes.has(scene)) return
@@ -123,8 +125,7 @@ function RoomModel({ room }) {
       node.castShadow    = false
       node.receiveShadow = false
       if (node.material) {
-        node.material.side = THREE.DoubleSide
-        node.material.needsUpdate = true
+        node.material.side = THREE.FrontSide
         // Boost realism
         if (node.material.roughness !== undefined)
           node.material.roughness = Math.min(node.material.roughness, 0.85)
@@ -157,6 +158,11 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
 
   useEffect(() => {
     if (!scene) return
+    const cached = HOTSPOT_CACHE.get(room.id)
+    if (cached) {
+      setHotspots(isMobile ? cached.slice(0, 1) : cached.slice(0, 4))
+      return
+    }
     const spots = []
     scene.traverse(node => {
       if (!node.isMesh) return
@@ -164,7 +170,7 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
       // Filter meaningful named objects (skip generic geometry names)
       if (!name || name.match(/^(mesh|object|geometry|material|node|group|primitive|unnamed)/i)) return
       if (name.length < 3) return
-      if (spots.length >= (isMobile ? 3 : 6)) return // cap per room
+      if (spots.length >= 4) return // cap per room
 
       const box = new THREE.Box3().setFromObject(node)
       const pos = box.getCenter(new THREE.Vector3())
@@ -175,7 +181,8 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
         roomDesc: room.desc,
       })
     })
-    setHotspots(spots)
+    HOTSPOT_CACHE.set(room.id, spots)
+    setHotspots(isMobile ? spots.slice(0, 1) : spots)
   }, [scene, room, isMobile])
 
   return (
@@ -241,8 +248,9 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
 ═══════════════════════════════════════════════════════════ */
 function ProximityRoom({ room, playerCoarse, playerPos, isMobile }) {
   const p = roomWorldPos(room)
+  const effectiveLoadRadius = isMobile ? MOBILE_LOAD_RADIUS : LOAD_RADIUS
   const dist = Math.hypot(playerCoarse.x - p.x, playerCoarse.z - p.z)
-  if (dist > LOAD_RADIUS) return null
+  if (dist > effectiveLoadRadius) return null
   return (
     <Suspense fallback={null}>
       <RoomModel room={room} />
@@ -286,8 +294,6 @@ const _tmpVec  = new THREE.Vector3()
 const _fwdVec  = new THREE.Vector3()
 const _rgtVec  = new THREE.Vector3()
 const _moveVec = new THREE.Vector3()
-const _backVec = new THREE.Vector3()
-const _leftVec = new THREE.Vector3()
 
 function FirstPersonController({
   onRoomChange, onPositionChange, locked,
@@ -365,21 +371,14 @@ function FirstPersonController({
       airborne.current = true
     }
 
-    /* === WALL COLLISION (every frame, 4 directions) === */
-    if (isMoving && collisionMeshes.length > 0) {
-      _backVec.copy(_fwdVec).negate()
-      _leftVec.copy(_rgtVec).negate()
-      const wallDirs = [_fwdVec, _rgtVec, _backVec, _leftVec]
+    /* === WALL COLLISION (throttled forward probe) === */
+    if (isMoving && collisionMeshes.length > 0 && frameCount.current % 2 === 0) {
       const origin   = camera.position.clone()
       origin.y -= 0.3 // check at waist height
-      for (const dir of wallDirs) {
-        _wallRay.set(origin, dir)
-        const hits = _wallRay.intersectObjects(collisionMeshes, false)
-        if (hits.length > 0 && hits[0].distance < 1.0) {
-          // Remove component in that direction
-          const dot = _moveVec.dot(dir)
-          if (dot > 0) _moveVec.addScaledVector(dir, -dot)
-        }
+      _wallRay.set(origin, _moveVec)
+      const hits = _wallRay.intersectObjects(collisionMeshes, false)
+      if (hits.length > 0 && hits[0].distance < 1.0) {
+        _moveVec.set(0, 0, 0)
       }
     }
 
@@ -397,12 +396,12 @@ function FirstPersonController({
     camera.position.y += velYRef.current * dt
 
     // Cast ray downward from 2m above player to find floor
-    if (frameCount.current % 2 === 0 && collisionMeshes.length > 0) {
+    if (frameCount.current % 3 === 0 && collisionMeshes.length > 0) {
       _downRay.set(
         new THREE.Vector3(camera.position.x, camera.position.y + 2, camera.position.z),
         new THREE.Vector3(0, -1, 0)
       )
-      const hits = _downRay.intersectObjects(collisionMeshes, true)
+      const hits = _downRay.intersectObjects(collisionMeshes, false)
       if (hits.length > 0) {
         const hitY = hits[0].point.y
         floorY.current = hitY
@@ -996,10 +995,14 @@ export default function MuseumPage() {
   const [annotationRoom,   setAnnotationRoom]    = useState(null)
   const [nearAnnotation,   setNearAnnotation]    = useState(false)
   const [isMobile,         setIsMobile]          = useState(false)
+  const [isIOS,            setIsIOS]             = useState(false)
   const [gateOpen,         setGateOpen]          = useState(false)
   const [webglFailed,      setWebglFailed]       = useState(false)
+  const [forceLite,        setForceLite]         = useState(false)
+  const [canvasVersion,    setCanvasVersion]     = useState(0)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
+  const lastHudRef = useRef({ t: 0, x: 0, z: ROOM_SPACING * 0.3 })
   const teleportRef = useRef(null)
   const touchInputRef = useRef({
     forward: false, back: false, left: false, right: false,
@@ -1012,6 +1015,13 @@ export default function MuseumPage() {
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    const ua = navigator.userAgent || ''
+    const iosDetected = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    setIsIOS(iosDetected)
+    if (iosDetected) setForceLite(true)
   }, [])
 
   const handleTeleport = useCallback((room) => {
@@ -1031,7 +1041,14 @@ export default function MuseumPage() {
   const handleRoomChange = useCallback(r => setCurrentRoom(r), [])
 
   const handlePositionChange = useCallback(pos => {
-    setPlayerPos(pos)
+    const now = performance.now()
+    const dxHud = pos.x - lastHudRef.current.x
+    const dzHud = pos.z - lastHudRef.current.z
+    const movedHud = Math.abs(dxHud) > HUD_MOVE_EPSILON || Math.abs(dzHud) > HUD_MOVE_EPSILON
+    if (movedHud && (now - lastHudRef.current.t > HUD_UPDATE_MS)) {
+      lastHudRef.current = { t: now, x: pos.x, z: pos.z }
+      setPlayerPos(pos)
+    }
     const dx = pos.x - lastCoarseRef.current.x
     const dz = pos.z - lastCoarseRef.current.z
     if (Math.abs(dx) > 8 || Math.abs(dz) > 8) {
@@ -1109,9 +1126,11 @@ export default function MuseumPage() {
         onTouchEnd={handleTouchLookEnd}
       >
         <Canvas
-          shadows
-          dpr={isMobile ? [0.65, 1.05] : [1, 1.5]}
-          gl={{ antialias: !isMobile, powerPreference: 'high-performance' }}
+          key={canvasVersion}
+          shadows={!forceLite}
+          dpr={forceLite ? [0.5, 0.85] : isMobile ? [0.65, 1.05] : [1, 1.5]}
+          gl={{ antialias: !(isMobile || forceLite), powerPreference: 'high-performance' }}
+          performance={{ min: 0.4 }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}
           onCreated={({ gl }) => {
             const canvas = gl.domElement
@@ -1139,7 +1158,7 @@ export default function MuseumPage() {
               onInteractKey={handleInteractKey}
               teleportRef={teleportRef}
               touchInputRef={touchInputRef}
-              isMobile={isMobile}
+              isMobile={isMobile || forceLite}
             />
           </Suspense>
         </Canvas>
@@ -1155,7 +1174,43 @@ export default function MuseumPage() {
         }}>
           <div>
             <div style={{ fontSize: 18, color: '#f97316', marginBottom: 10 }}>Graphics reset detected</div>
-            <div style={{ fontSize: 12, color: '#aaa' }}>Please reopen the page. Mobile quality has been reduced to prevent this.</div>
+            <div style={{ fontSize: 12, color: '#aaa', marginBottom: 14 }}>
+              iPhone/Safari memory pressure can reset WebGL. Continue in Lite mode for stable FPS.
+            </div>
+            <button onClick={() => {
+              setForceLite(true)
+              setWebglFailed(false)
+              setCanvasVersion(v => v + 1)
+            }} style={{
+              background: 'rgba(249,115,22,0.15)',
+              border: '1px solid rgba(249,115,22,0.5)',
+              color: '#f97316',
+              borderRadius: 8,
+              padding: '10px 16px',
+              fontFamily: 'JetBrains Mono',
+              fontSize: 11,
+              cursor: 'pointer'
+            }}>
+              Continue in Lite Mode
+            </button>
+            {!isIOS && (
+              <button onClick={() => {
+                setWebglFailed(false)
+                setCanvasVersion(v => v + 1)
+              }} style={{
+                marginLeft: 10,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: '#ddd',
+                borderRadius: 8,
+                padding: '10px 16px',
+                fontFamily: 'JetBrains Mono',
+                fontSize: 11,
+                cursor: 'pointer'
+              }}>
+                Retry current quality
+              </button>
+            )}
           </div>
         </div>
       )}

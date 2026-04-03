@@ -22,3 +22,11 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## Deployment note (Netlify + GitHub Pages)
+
+- `vite.config.js` now auto-detects platform base paths:
+  - **Netlify:** `/`
+  - **GitHub Pages (Actions):** `/reactnewweb/`
+
+If you deploy from a custom CI, set the correct base explicitly via env and/or adjust `vite.config.js`.

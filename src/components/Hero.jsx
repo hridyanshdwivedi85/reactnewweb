@@ -1,21 +1,43 @@
-import React from 'react'
-import CharacterScene from './CharacterScene'
-import UnicornScene from "unicornstudio-react"
+import React, { Suspense, lazy, useEffect, useState } from 'react'
+import UnicornScene from 'unicornstudio-react'
+
+const CharacterScene = lazy(() => import('./CharacterScene'))
+
+function canRenderHeavyHero() {
+  if (typeof window === 'undefined') return true
+  const isSmallScreen = window.matchMedia('(max-width: 900px)').matches
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const saveDataEnabled = Boolean(navigator.connection?.saveData)
+  return !isSmallScreen && !prefersReducedMotion && !saveDataEnabled
+}
 
 export default function Hero() {
+  const [allowHeavyEffects, setAllowHeavyEffects] = useState(canRenderHeavyHero)
+
+  useEffect(() => {
+    const update = () => setAllowHeavyEffects(canRenderHeavyHero())
+    update()
+    window.addEventListener('resize', update, { passive: true })
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
   return (
     <section className="landing-section" id="landingDiv" style={{ position: 'relative', overflow: 'hidden' }}>
       {/* Background UnicornStudio animation */}
-      <div id="unicorn-wrapper" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <UnicornScene
-          projectId="7bzzYJGvMvu0GRawnv9y"
-          width="100%"
-          height="100%"
-          scale={1}
-          dpi={1.5}
-          sdkUrl="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@2.1.6/dist/unicornStudio.umd.js"
-        />
-      </div>
+      {allowHeavyEffects ? (
+        <div id="unicorn-wrapper" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+          <UnicornScene
+            projectId="7bzzYJGvMvu0GRawnv9y"
+            width="100%"
+            height="100%"
+            scale={1}
+            dpi={1.25}
+            sdkUrl="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@2.1.6/dist/unicornStudio.umd.js"
+          />
+        </div>
+      ) : (
+        <div className="hero-fallback-bg" aria-hidden="true" />
+      )}
 
       {/* Background circles from the new design */}
       <div className="landing-circle1"></div>
@@ -49,7 +71,11 @@ export default function Hero() {
         </div>
       </div>
 
-      <CharacterScene />
+      {allowHeavyEffects ? (
+        <Suspense fallback={null}>
+          <CharacterScene />
+        </Suspense>
+      ) : null}
     </section>
   )
 }

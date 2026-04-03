@@ -16,16 +16,19 @@ export default function Cursor() {
     let hover = false
     const mousePos = { x: 0, y: 0 }
     const cursorPos = { x: 0, y: 0 }
+    const cleanupFns = []
 
-    document.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e) => {
       mousePos.x = e.clientX
       mousePos.y = e.clientY
-    })
+    }
+    document.addEventListener('mousemove', handleMouseMove, { passive: true })
+    cleanupFns.push(() => document.removeEventListener('mousemove', handleMouseMove))
 
     let rafId
     const loop = () => {
       rafId = requestAnimationFrame(loop)
-      if (!hover) {
+      if (!hover && !document.hidden) {
         const delay = 6
         cursorPos.x += (mousePos.x - cursorPos.x) / delay
         cursorPos.y += (mousePos.y - cursorPos.y) / delay
@@ -36,7 +39,7 @@ export default function Cursor() {
 
     // Hover interactions for data-cursor elements
     document.querySelectorAll('[data-cursor]').forEach((item) => {
-      item.addEventListener('mouseover', (e) => {
+      const onOver = (e) => {
         const target = e.currentTarget
         const rect = target.getBoundingClientRect()
         if (item.dataset.cursor === 'icons') {
@@ -48,21 +51,36 @@ export default function Cursor() {
         if (item.dataset.cursor === 'disable') {
           cursor.classList.add('cursor-disable')
         }
-      })
-      item.addEventListener('mouseout', () => {
+      }
+      const onOut = () => {
         cursor.classList.remove('cursor-disable', 'cursor-icons')
         hover = false
+      }
+      item.addEventListener('mouseover', onOver)
+      item.addEventListener('mouseout', onOut)
+      cleanupFns.push(() => {
+        item.removeEventListener('mouseover', onOver)
+        item.removeEventListener('mouseout', onOut)
       })
     })
 
     // Enhanced interactions for links/buttons
     const addHover = () => {
       document.querySelectorAll('a, button').forEach((el) => {
-        el.addEventListener('mouseenter', () => {
+        if (el.dataset.cursorBound === 'true') return
+        el.dataset.cursorBound = 'true'
+        const onEnter = () => {
           cursor.classList.add('cursor-hover')
-        })
-        el.addEventListener('mouseleave', () => {
+        }
+        const onLeave = () => {
           cursor.classList.remove('cursor-hover')
+        }
+        el.addEventListener('mouseenter', onEnter)
+        el.addEventListener('mouseleave', onLeave)
+        cleanupFns.push(() => {
+          delete el.dataset.cursorBound
+          el.removeEventListener('mouseenter', onEnter)
+          el.removeEventListener('mouseleave', onLeave)
         })
       })
     }
@@ -75,6 +93,7 @@ export default function Cursor() {
     return () => {
       cancelAnimationFrame(rafId)
       observer.disconnect()
+      cleanupFns.forEach((fn) => fn())
     }
   }, [])
 

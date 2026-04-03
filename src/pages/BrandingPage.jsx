@@ -119,18 +119,24 @@ function PS5Slide({ active }) {
 
 function CokeSlide({ active }) {
   return (
-    <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center' }}>
-      <div style={{ width: '40%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img src="assets/images/coke_can.png" className="float-fast" alt="Coca-Cola" style={{ height: '70%', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }} />
+    <div className="br-coke-layout">
+      <div className="br-coke-noise" />
+      <div className="br-coke-left">
+        <div className="br-coke-ice" />
+        <img src="assets/images/coke_can.png" className="float-fast br-coke-can" alt="Coca-Cola" />
       </div>
-      <div style={{ width: '60%', padding: '0 4% 0 2%', color: '#fff' }}>
-        <div style={{ fontFamily: 'Space Grotesk', fontSize: '2.5rem', fontWeight: 900, marginBottom: '16px', fontStyle: 'italic' }}>Coca-Cola</div>
+      <div className="br-coke-right">
+        <div className="br-coke-kicker">EST. 1886 · ORIGINAL TASTE</div>
+        <div className="br-coke-brand">Coca-Cola</div>
         <h2 className="br-huge-title" style={{ color: '#fff' }}>Open<br />Happiness.</h2>
-        <p className="br-sarcastic" style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'rgba(255,255,255,0.9)', fontStyle: 'italic' }}>
+        <p className="br-sarcastic br-coke-copy">
           "Scientifically proven to make pizza taste 300% better."
         </p>
-        <div className="br-price-tag" style={{ borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)' }}>
-          <span className="br-price-val">12-PACK: $6.99</span>
+        <div className="br-coke-meta">
+          <div className="br-price-tag br-coke-price">
+            <span className="br-price-val">12-PACK: $6.99</span>
+          </div>
+          <span className="br-coke-chip">Zero Compromises</span>
         </div>
       </div>
     </div>

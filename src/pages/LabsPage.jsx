@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, MeshDistortMaterial, Sphere, Points, PointMaterial, Torus, Stars, ContactShadows, Float, MeshWobbleMaterial } from '@react-three/drei'
+import { MeshDistortMaterial, Sphere, Points, PointMaterial, Torus, Stars, ContactShadows, Float, MeshWobbleMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import '../labs.css'
@@ -147,7 +147,7 @@ function SpatialAudioVisualizer({ active }) {
 }
 
 /* ── MAIN SCENE CONTROLLER ── */
-function LabScene({ activeIdx }) {
+function LabScene({ activeIdx, visualRotationY = 0 }) {
   // Only render 3D elements for Neural (0), Compiler (2), Audio (3)
   if (activeIdx === 1 || activeIdx === 4) return null;
 
@@ -160,7 +160,7 @@ function LabScene({ activeIdx }) {
       {/* Background stars for a deep space aesthetic */}
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       
-      <group position={[3, 0, 0]}>
+      <group position={[3, 0, 0]} rotation={[0, visualRotationY, 0]}>
         {activeIdx === 0 && <NeuralVisualizer active={true} />}
         {activeIdx === 2 && <CompilerVisualizer active={true} />}
         {activeIdx === 3 && <SpatialAudioVisualizer active={true} />}
@@ -177,6 +177,7 @@ export default function LabsPage() {
   const [isMobile, setIsMobile] = useState(false)
   const [isSmallMobile, setIsSmallMobile] = useState(false)
   const infoRef = useRef(null)
+  const dragRef = useRef({ active: false, x: 0, base: 0 })
 
   const goTo = (idx) => {
     if (idx === activeIdx) return
@@ -222,32 +223,47 @@ export default function LabsPage() {
   }, [])
 
   const mod = MODULES[activeIdx]
+  const isVisualModule = [0, 2, 3].includes(activeIdx)
+
+  const handlePointerDown = (e) => {
+    if (!isVisualModule) return
+    dragRef.current = { active: true, x: e.clientX, base: visualRotationY }
+  }
+
+  const handlePointerMove = (e) => {
+    if (!dragRef.current.active || !isVisualModule) return
+    const delta = (e.clientX - dragRef.current.x) * 0.008
+    setVisualRotationY(dragRef.current.base + delta)
+  }
+
+  const stopDrag = () => {
+    dragRef.current.active = false
+  }
 
   return (
-    <div className="labs-slider-page" style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#05050d', overflow: 'hidden' }}>
+    <div
+      className="labs-slider-page"
+      style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#05050d', overflow: 'hidden' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
+      onPointerLeave={stopDrag}
+    >
       
       {/* ── THREE.JS CANVAS (OUTPUT) ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, transition: 'opacity 0.6s', opacity: [0, 2, 3].includes(activeIdx) ? 1 : 0 }}>
-        <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
-          <LabScene activeIdx={activeIdx} />
-          {/* Subtle slow pan */}
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false}
-            autoRotate={true}
-            autoRotateSpeed={0.5}
-            minPolarAngle={Math.PI / 2.5}
-            maxPolarAngle={Math.PI / 1.5}
-          />
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, transition: 'opacity 0.6s', opacity: [0, 2, 3].includes(activeIdx) ? 1 : 0 }}>
+        <Canvas camera={{ position: [0, 0, 8], fov: isMobile ? 50 : 45 }}>
+          <LabScene activeIdx={activeIdx} visualRotationY={visualRotationY} />
         </Canvas>
       </div>
 
       {/* ── CUSTOM DOM COMPONENTS ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: activeIdx === 1 ? 'auto' : 'none', transition: 'opacity 0.6s, transform 0.6s', opacity: activeIdx === 1 ? 1 : 0, transform: activeIdx === 1 ? 'scale(1)' : 'scale(1.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, pointerEvents: activeIdx === 1 ? 'auto' : 'none', transition: 'opacity 0.6s, transform 0.6s', opacity: activeIdx === 1 ? 1 : 0, transform: activeIdx === 1 ? 'scale(1)' : 'scale(1.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {activeIdx === 1 && <CoffeeBrewerUI active={activeIdx === 1} />}
       </div>
       
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: activeIdx === 4 ? 'auto' : 'none', transition: 'opacity 1s ease', opacity: activeIdx === 4 ? 1 : 0 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, pointerEvents: activeIdx === 4 ? 'auto' : 'none', transition: 'opacity 1s ease', opacity: activeIdx === 4 ? 1 : 0 }}>
         {activeIdx === 4 && <EntropyCremaCanvas active={activeIdx === 4} />}
       </div>
 
@@ -346,6 +362,12 @@ export default function LabsPage() {
           / 05
         </div>
       </div>
+
+      {isVisualModule && (
+        <div style={{ position: 'absolute', right: '14px', top: isMobile ? '36%' : 'auto', bottom: isMobile ? 'auto' : '110px', zIndex: 11, fontSize: isMobile ? '9px' : '10px', letterSpacing: '1.8px', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.15)', padding: isMobile ? '5px 8px' : '7px 10px', borderRadius: '999px' }}>
+          Drag to rotate visual
+        </div>
+      )}
     </div>
   )
 }

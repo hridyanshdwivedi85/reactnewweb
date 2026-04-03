@@ -96,8 +96,11 @@ function getRoomById(id) {
    so the physics raycaster can check against them.
 ═══════════════════════════════════════════════════════════ */
 const collisionMeshes = []
+const registeredScenes = new WeakSet()
 
 function registerScene(scene) {
+  if (registeredScenes.has(scene)) return
+  registeredScenes.add(scene)
   scene.traverse(node => {
     if (node.isMesh) collisionMeshes.push(node)
   })
@@ -458,8 +461,8 @@ function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, pl
     <>
       <ambientLight intensity={1.0} />
       <directionalLight
-        position={[40, 50, 40]} intensity={1.5} castShadow
-        shadow-mapSize={[2048, 2048]}
+        position={[40, 50, 40]} intensity={isMobile ? 1.0 : 1.5} castShadow={!isMobile}
+        shadow-mapSize={isMobile ? [1, 1] : [2048, 2048]}
         shadow-camera-far={350}
         shadow-camera-left={-100} shadow-camera-right={100}
         shadow-camera-top={100}  shadow-camera-bottom={-100}
@@ -467,7 +470,7 @@ function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, pl
       <pointLight position={[ROOM_SPACING, 8, ROOM_SPACING]}      intensity={0.7} color="#fff8e8" />
       <pointLight position={[ROOM_SPACING * 2, 8, ROOM_SPACING * 2]} intensity={0.5} color="#e8f0ff" />
       <pointLight position={[0, 8, ROOM_SPACING * 2]}                 intensity={0.4} color="#ffe8d0" />
-      <Environment preset="apartment" />
+      {!isMobile && <Environment preset="apartment" />}
 
       <GroundPlane />
 
@@ -1091,6 +1094,14 @@ export default function MuseumPage() {
           dpr={isMobile ? [0.65, 1.05] : [1, 1.5]}
           gl={{ antialias: !isMobile, powerPreference: 'high-performance' }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}
+          onCreated={({ gl }) => {
+            const canvas = gl.domElement
+            const onLost = (e) => {
+              e.preventDefault()
+              setWebglFailed(true)
+            }
+            canvas.addEventListener('webglcontextlost', onLost, { passive: false, once: true })
+          }}
         >
           {!isMobile && (
             <PointerLockControls
@@ -1116,6 +1127,19 @@ export default function MuseumPage() {
       </div>
 
       {!loaded && <LoadingScreen />}
+      {webglFailed && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 120,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.9)', color: '#fff', fontFamily: 'JetBrains Mono',
+          textAlign: 'center', padding: 24
+        }}>
+          <div>
+            <div style={{ fontSize: 18, color: '#f97316', marginBottom: 10 }}>Graphics reset detected</div>
+            <div style={{ fontSize: 12, color: '#aaa' }}>Please reopen the page. Mobile quality has been reduced to prevent this.</div>
+          </div>
+        </div>
+      )}
       {loaded && showInstructions && <Instructions onDismiss={handleDismiss} />}
 
       {loaded && !showInstructions && (

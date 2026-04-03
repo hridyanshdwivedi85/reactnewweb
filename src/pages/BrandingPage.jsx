@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import Navbar from '../components/Navbar'
 import FluidBackground from '../components/FluidBackground'
 
 /* ══════════════════════════════════════════
@@ -411,14 +410,13 @@ export default function BrandingPage() {
   return (
     <div className={`brand-page-v2 ${isMobile ? 'mobile' : ''}`} style={{ background: '#000' }}>
       <FluidBackground baseColor={s.fluidColor} lowPower={isMobile} />
-      <Navbar />
 
       {/* Slide Content wrapped in an elegant glass card */}
       <div className={`br-slide-content ${transitioning ? 'br-slide-out' : 'br-slide-in'}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
         <div className="br-ad-card" style={{
           position: 'relative',
-          width: isMobile ? '100vw' : '95vw',
-          height: isMobile ? 'calc(100vh - 64px)' : '90vh',
+          width: isMobile ? '100%' : '95vw',
+          height: isMobile ? '100%' : '90vh',
           background: isMobile ? 'transparent' : 'rgba(10, 10, 15, 0.4)',
           backdropFilter: isMobile ? 'none' : 'blur(24px)',
           WebkitBackdropFilter: isMobile ? 'none' : 'blur(24px)',
@@ -426,7 +424,8 @@ export default function BrandingPage() {
           borderRadius: isMobile ? '0' : '24px',
           overflow: 'hidden',
           boxShadow: isMobile ? 'none' : '0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
-          display: 'flex'
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row'
         }}>
           <SlideContent active={!transitioning} />
         </div>

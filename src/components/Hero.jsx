@@ -5,10 +5,9 @@ const CharacterScene = lazy(() => import('./CharacterScene'))
 
 function canRenderHeavyHero() {
   if (typeof window === 'undefined') return true
-  const isSmallScreen = window.matchMedia('(max-width: 900px)').matches
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const saveDataEnabled = Boolean(navigator.connection?.saveData)
-  return !isSmallScreen && !prefersReducedMotion && !saveDataEnabled
+  return !prefersReducedMotion && !saveDataEnabled
 }
 
 export default function Hero() {

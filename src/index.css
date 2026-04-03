@@ -1674,6 +1674,9 @@ h2.landing-info-h2 {
   overflow: hidden;
   backdrop-filter: blur(10px);
 }
+.hero-cmd-box-mobile {
+  transform-origin: center bottom;
+}
 .hero-cmd-head {
   display: flex;
   align-items: center;
@@ -1716,8 +1719,37 @@ h2.landing-info-h2 {
 @keyframes heroBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
 @media (max-width: 900px) {
-  .hero-cmd-box { width: 100%; }
-  .hero-cmd-body { padding: 13px; }
+  .landing-info {
+    bottom: 22px;
+  }
+  .hero-cmd-box {
+    width: min(88vw, 430px);
+  }
+  .hero-cmd-head {
+    padding: 8px 11px;
+  }
+  .hero-cmd-title {
+    font-size: 0.53rem;
+  }
+  .hero-cmd-body { padding: 12px; }
+  .hero-cmd-output {
+    font-size: clamp(1rem, 6.2vw, 1.5rem);
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (max-width: 499px) {
+  .landing-info {
+    bottom: 8px;
+  }
+  .hero-cmd-box {
+    width: min(86vw, 350px);
+  }
+  .hero-cmd-body {
+    padding: 10px;
+    font-size: 0.74rem;
+    line-height: 1.6;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

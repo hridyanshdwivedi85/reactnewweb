@@ -18,6 +18,8 @@ const MOVE_SPEED     = 5.5
 const SPRINT_SPEED   = 11
 const INTERACT_DIST  = 4.5   // metres for E-key annotation
 const MOBILE_LOOK_SENSITIVITY = 0.0028
+const HUD_UPDATE_MS = 80
+const HUD_MOVE_EPSILON = 0.22
 
 const ROOM_LINKS = {
   armoury: 'billiards',
@@ -97,6 +99,7 @@ function getRoomById(id) {
 ═══════════════════════════════════════════════════════════ */
 const collisionMeshes = []
 const registeredScenes = new WeakSet()
+const HOTSPOT_CACHE = new Map()
 
 function registerScene(scene) {
   if (registeredScenes.has(scene)) return
@@ -123,8 +126,7 @@ function RoomModel({ room }) {
       node.castShadow    = false
       node.receiveShadow = false
       if (node.material) {
-        node.material.side = THREE.DoubleSide
-        node.material.needsUpdate = true
+        node.material.side = THREE.FrontSide
         // Boost realism
         if (node.material.roughness !== undefined)
           node.material.roughness = Math.min(node.material.roughness, 0.85)
@@ -157,6 +159,11 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
 
   useEffect(() => {
     if (!scene) return
+    const cached = HOTSPOT_CACHE.get(room.id)
+    if (cached) {
+      setHotspots(isMobile ? cached.slice(0, 2) : cached.slice(0, 4))
+      return
+    }
     const spots = []
     scene.traverse(node => {
       if (!node.isMesh) return
@@ -164,7 +171,7 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
       // Filter meaningful named objects (skip generic geometry names)
       if (!name || name.match(/^(mesh|object|geometry|material|node|group|primitive|unnamed)/i)) return
       if (name.length < 3) return
-      if (spots.length >= (isMobile ? 3 : 6)) return // cap per room
+      if (spots.length >= 4) return // cap per room
 
       const box = new THREE.Box3().setFromObject(node)
       const pos = box.getCenter(new THREE.Vector3())
@@ -175,7 +182,8 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
         roomDesc: room.desc,
       })
     })
-    setHotspots(spots)
+    HOTSPOT_CACHE.set(room.id, spots)
+    setHotspots(isMobile ? spots.slice(0, 2) : spots)
   }, [scene, room, isMobile])
 
   return (
@@ -286,8 +294,6 @@ const _tmpVec  = new THREE.Vector3()
 const _fwdVec  = new THREE.Vector3()
 const _rgtVec  = new THREE.Vector3()
 const _moveVec = new THREE.Vector3()
-const _backVec = new THREE.Vector3()
-const _leftVec = new THREE.Vector3()
 
 function FirstPersonController({
   onRoomChange, onPositionChange, locked,
@@ -365,21 +371,14 @@ function FirstPersonController({
       airborne.current = true
     }
 
-    /* === WALL COLLISION (every frame, 4 directions) === */
-    if (isMoving && collisionMeshes.length > 0) {
-      _backVec.copy(_fwdVec).negate()
-      _leftVec.copy(_rgtVec).negate()
-      const wallDirs = [_fwdVec, _rgtVec, _backVec, _leftVec]
+    /* === WALL COLLISION (throttled forward probe) === */
+    if (isMoving && collisionMeshes.length > 0 && frameCount.current % 2 === 0) {
       const origin   = camera.position.clone()
       origin.y -= 0.3 // check at waist height
-      for (const dir of wallDirs) {
-        _wallRay.set(origin, dir)
-        const hits = _wallRay.intersectObjects(collisionMeshes, false)
-        if (hits.length > 0 && hits[0].distance < 1.0) {
-          // Remove component in that direction
-          const dot = _moveVec.dot(dir)
-          if (dot > 0) _moveVec.addScaledVector(dir, -dot)
-        }
+      _wallRay.set(origin, _moveVec)
+      const hits = _wallRay.intersectObjects(collisionMeshes, false)
+      if (hits.length > 0 && hits[0].distance < 1.0) {
+        _moveVec.set(0, 0, 0)
       }
     }
 
@@ -397,12 +396,12 @@ function FirstPersonController({
     camera.position.y += velYRef.current * dt
 
     // Cast ray downward from 2m above player to find floor
-    if (frameCount.current % 2 === 0 && collisionMeshes.length > 0) {
+    if (frameCount.current % 3 === 0 && collisionMeshes.length > 0) {
       _downRay.set(
         new THREE.Vector3(camera.position.x, camera.position.y + 2, camera.position.z),
         new THREE.Vector3(0, -1, 0)
       )
-      const hits = _downRay.intersectObjects(collisionMeshes, true)
+      const hits = _downRay.intersectObjects(collisionMeshes, false)
       if (hits.length > 0) {
         const hitY = hits[0].point.y
         floorY.current = hitY
@@ -1000,6 +999,7 @@ export default function MuseumPage() {
   const [webglFailed,      setWebglFailed]       = useState(false)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
+  const lastHudRef = useRef({ t: 0, x: 0, z: ROOM_SPACING * 0.3 })
   const teleportRef = useRef(null)
   const touchInputRef = useRef({
     forward: false, back: false, left: false, right: false,
@@ -1031,7 +1031,14 @@ export default function MuseumPage() {
   const handleRoomChange = useCallback(r => setCurrentRoom(r), [])
 
   const handlePositionChange = useCallback(pos => {
-    setPlayerPos(pos)
+    const now = performance.now()
+    const dxHud = pos.x - lastHudRef.current.x
+    const dzHud = pos.z - lastHudRef.current.z
+    const movedHud = Math.abs(dxHud) > HUD_MOVE_EPSILON || Math.abs(dzHud) > HUD_MOVE_EPSILON
+    if (movedHud && (now - lastHudRef.current.t > HUD_UPDATE_MS)) {
+      lastHudRef.current = { t: now, x: pos.x, z: pos.z }
+      setPlayerPos(pos)
+    }
     const dx = pos.x - lastCoarseRef.current.x
     const dz = pos.z - lastCoarseRef.current.z
     if (Math.abs(dx) > 8 || Math.abs(dz) > 8) {

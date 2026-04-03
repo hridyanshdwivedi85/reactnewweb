@@ -7,7 +7,7 @@ import * as THREE from 'three'
 /* ═══════════════════════════════════════════════════════════
    CONSTANTS
 ═══════════════════════════════════════════════════════════ */
-const BASE_URL       = '/assets/models/museum/'
+const BASE_URL       = `${import.meta.env.BASE_URL}assets/models/museum/`
 const ROOM_SPACING   = 48    // world units between room centres
 const ROOM_TARGET    = 42    // scale each room to this footprint
 const LOAD_RADIUS    = ROOM_SPACING * 2.2

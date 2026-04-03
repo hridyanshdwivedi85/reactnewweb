@@ -5,6 +5,8 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js'
 import { TextureLoader, MeshStandardMaterial, Box3, Vector3 } from 'three'
 
+const MODEL_BASE = `${import.meta.env.BASE_URL}assets/models/`
+
 const SHOES = [
   {
     id: 'adidas',
@@ -31,7 +33,7 @@ const SHOES = [
 function AdidasModel() {
   const ref = useRef()
   // Loading the ply file
-  const geometry = useLoader(PLYLoader, '/assets/models/adidas-shoes/11.ply')
+  const geometry = useLoader(PLYLoader, `${MODEL_BASE}adidas-shoes/11.ply`)
   
   const mat = useMemo(() => {
     geometry.computeVertexNormals()
@@ -70,8 +72,8 @@ function AdidasModel() {
 
 function CyberpunkModel() {
   const ref = useRef()
-  const fbx = useLoader(FBXLoader, '/assets/models/cyberpunk-sneaker/source/futuristic+sneaker+3d+model.fbx')
-  const texture = useLoader(TextureLoader, '/assets/models/cyberpunk-sneaker/textures/tripo_image_1eb60c4e_0.jpeg')
+  const fbx = useLoader(FBXLoader, `${MODEL_BASE}cyberpunk-sneaker/source/futuristic+sneaker+3d+model.fbx`)
+  const texture = useLoader(TextureLoader, `${MODEL_BASE}cyberpunk-sneaker/textures/tripo_image_1eb60c4e_0.jpeg`)
 
   useEffect(() => {
     if (!fbx || !texture) return

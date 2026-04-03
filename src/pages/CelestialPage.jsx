@@ -48,10 +48,45 @@ export default function CelestialPage() {
   const [telemetry, setTelemetry] = useState(null)
   const [timeSpeed, setTimeSpeed] = useState(1)
   const [lockedPlanet, setLockedPlanet] = useState(null)
+  const [panelExpanded, setPanelExpanded] = useState(false)
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false)
 
   const timeRef        = useRef(1)
   const lockedRef      = useRef(null)   // mesh we're orbiting
   const lockedRadiusRef = useRef(null)  // orbit radius around locked planet
+  const breakdownFxRef = useRef({})
+
+  useEffect(() => {
+    const isSmallTouchDevice = () =>
+      window.matchMedia('(max-width: 1024px)').matches &&
+      ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+
+    const requestFullscreenLandscape = async () => {
+      const root = document.documentElement
+      const isLandscape = window.innerWidth > window.innerHeight
+      const shouldFullscreen = isSmallTouchDevice() && isLandscape
+      setIsLandscapeMobile(shouldFullscreen)
+      if (!shouldFullscreen) return
+
+      try {
+        if (!document.fullscreenElement && root.requestFullscreen) {
+          await root.requestFullscreen({ navigationUI: 'hide' })
+        } else if (!document.fullscreenElement && root.webkitRequestFullscreen) {
+          root.webkitRequestFullscreen()
+        }
+      } catch {
+        // Some mobile browsers block fullscreen without explicit gesture.
+      }
+    }
+
+    requestFullscreenLandscape()
+    window.addEventListener('orientationchange', requestFullscreenLandscape)
+    window.addEventListener('resize', requestFullscreenLandscape, { passive: true })
+    return () => {
+      window.removeEventListener('orientationchange', requestFullscreenLandscape)
+      window.removeEventListener('resize', requestFullscreenLandscape)
+    }
+  }, [])
 
   useEffect(() => {
     const el = containerRef.current
@@ -512,6 +547,7 @@ export default function CelestialPage() {
         const d       = hitMesh.userData
 
         setTelemetry(d)
+        setPanelExpanded(false)
 
         /* Lock camera onto this planet */
         lockedRef.current = hitMesh
@@ -617,6 +653,14 @@ export default function CelestialPage() {
       el.removeEventListener('pointerdown',    onPointerDown)
       el.removeEventListener('pointermove',    onPointerMove)
       el.removeEventListener('pointerup',      onPointerUp)
+      Object.values(breakdownFxRef.current).forEach((fx) => {
+        fx.parent?.remove(fx.coreMesh)
+        fx.parent?.remove(fx.pts)
+        fx.coreMat?.dispose?.()
+        fx.ptsGeo?.dispose?.()
+        fx.pMat?.dispose?.()
+      })
+      breakdownFxRef.current = {}
       renderer.dispose()
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement)
     }
@@ -634,11 +678,13 @@ export default function CelestialPage() {
     engineRef.current && (engineRef.current.target = new THREE.Vector3(0, 0, 0))
     setLockedPlanet(null)
     setTelemetry(null)
+    setPanelExpanded(false)
   }
 
   const breakDownPlanet = (name) => {
     if (exploded[name]) return
     setExploded(prev => ({ ...prev, [name]: true }))
+    setPanelExpanded(true)
     const mesh = planetsRef.current[name]
     if (!mesh) return
 
@@ -652,9 +698,17 @@ export default function CelestialPage() {
     parent.add(coreMesh)
 
     const ptsGeo = new THREE.BufferGeometry()
-    const pArr   = mesh.geometry.attributes.position.array
-    ptsGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pArr), 3))
-    const pMat = new THREE.PointsMaterial({ color: data.sCol || 0xffffff, size: 0.3, transparent: true, opacity: 1, blending: THREE.AdditiveBlending })
+    const source = mesh.geometry.attributes.position.array
+    const particleCount = window.innerWidth < 768 ? 24000 : 75000
+    const distributed = new Float32Array(particleCount * 3)
+    for (let i = 0; i < particleCount; i++) {
+      const pick = (i * 3) % source.length
+      distributed[i * 3] = source[pick]
+      distributed[i * 3 + 1] = source[pick + 1]
+      distributed[i * 3 + 2] = source[pick + 2]
+    }
+    ptsGeo.setAttribute('position', new THREE.BufferAttribute(distributed, 3))
+    const pMat = new THREE.PointsMaterial({ color: data.sCol || 0xffffff, size: 0.24, transparent: true, opacity: 1, blending: THREE.AdditiveBlending })
     const pts   = new THREE.Points(ptsGeo, pMat)
     pts.position.copy(mesh.position)
     parent.add(pts)
@@ -662,11 +716,25 @@ export default function CelestialPage() {
 
     import('gsap').then(({ gsap }) => {
       gsap.to(coreMat,      { opacity: 1, duration: 1.5 })
-      gsap.to(pts.scale,    { x: 3, y: 3, z: 3, duration: 2.5, ease: 'power2.out' })
-      gsap.to(pMat,         { opacity: 0, duration: 2.5, ease: 'power2.out', onComplete: () => {
-        parent.remove(pts); ptsGeo.dispose(); pMat.dispose()
-      }})
+      gsap.to(pts.scale,    { x: 8, y: 8, z: 8, duration: 2.6, ease: 'power2.out' })
+      gsap.to(pMat,         { opacity: 0.06, duration: 2.8, ease: 'power2.out' })
     })
+
+    breakdownFxRef.current[name] = { parent, mesh, coreMesh, coreMat, pts, ptsGeo, pMat }
+  }
+
+  const reverseBreakdown = (name) => {
+    const fx = breakdownFxRef.current[name]
+    if (!fx) return
+    fx.mesh.visible = true
+    fx.parent.remove(fx.coreMesh)
+    fx.parent.remove(fx.pts)
+    fx.coreMat.dispose()
+    fx.ptsGeo.dispose()
+    fx.pMat.dispose()
+    delete breakdownFxRef.current[name]
+    setExploded(prev => ({ ...prev, [name]: false }))
+    setPanelExpanded(false)
   }
 
   return (
@@ -674,9 +742,11 @@ export default function CelestialPage() {
       {/* Loading */}
       {loading && (
         <div className="cel-loading">
+          <div className="cel-load-stars" />
           <div className="cel-load-ring" />
           <div className="cel-load-title">ENTERING CELESTIAL MODE</div>
           <div className="cel-load-sub">Calibrating gravitational cores…</div>
+          <div className="cel-load-pulse" />
         </div>
       )}
 
@@ -696,7 +766,7 @@ export default function CelestialPage() {
 
       {/* Locked planet badge */}
       {lockedPlanet && (
-        <div className="cel-locked-badge" onClick={unlockCamera}>
+        <div className={`cel-locked-badge ${telemetry ? 'cel-locked-badge-front' : ''}`} onClick={unlockCamera}>
           <span>🔒 {lockedPlanet}</span>
           <span className="cel-locked-free">TAP TO FREE</span>
         </div>
@@ -713,49 +783,61 @@ export default function CelestialPage() {
             <button className="cel-panel-close" onClick={() => { setTelemetry(null); unlockCamera() }}>✕</button>
           </div>
 
-          <div className="cel-stats">
-            {telemetry.stats?.map(s => (
-              <div key={s.label} className="cel-stat-row">
-                <span className="cel-stat-label">{s.label}</span>
-                <span className="cel-stat-val">{s.value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="cel-status" style={{ borderColor: `${telemetry.sCol}44`, color: telemetry.sCol }}>
-            {telemetry.status}
-          </div>
-
-          <div className="cel-orbit-hint">
-            <span>🖱 Drag · Scroll to zoom around planet</span>
-          </div>
-
           <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
             {!exploded[telemetry.name] ? (
               <button
                 className="cel-panel-close"
-                style={{ position:'relative', width:'100%', background:'rgba(255,0,0,0.18)', border:'1px solid red', padding:'0.5rem', color:'red', fontSize:'0.7rem', letterSpacing:'0.1em' }}
+                style={{ position:'relative', width:'100%', background:'rgba(255,0,0,0.18)', border:'1px solid red', padding:'0.5rem', color:'red', fontSize:'0.7rem', letterSpacing:'0.1em', borderRadius:'10px' }}
                 onClick={() => breakDownPlanet(telemetry.name)}
               >
                 INITIATE CORE BREAKDOWN
               </button>
             ) : (
-              <div style={{ color:'#22c55e', fontSize:'0.7rem', textAlign:'center', letterSpacing:'0.1em', fontWeight:'bold' }}>
-                CORE EXPOSED
+              <div style={{ display:'grid', gap:'0.45rem' }}>
+                <div style={{ color:'#22c55e', fontSize:'0.7rem', textAlign:'center', letterSpacing:'0.1em', fontWeight:'bold' }}>
+                  CORE EXPOSED
+                </div>
+                <button
+                  className="cel-panel-close"
+                  style={{ position:'relative', width:'100%', background:'rgba(34,197,94,0.16)', border:'1px solid rgba(34,197,94,0.75)', padding:'0.5rem', color:'#7ff3a9', fontSize:'0.68rem', letterSpacing:'0.09em', borderRadius:'10px' }}
+                  onClick={() => reverseBreakdown(telemetry.name)}
+                >
+                  REVERSE BREAKDOWN
+                </button>
               </div>
             )}
           </div>
+          {panelExpanded && (
+            <>
+              <div className="cel-stats">
+                {telemetry.stats?.map(s => (
+                  <div key={s.label} className="cel-stat-row">
+                    <span className="cel-stat-label">{s.label}</span>
+                    <span className="cel-stat-val">{s.value}</span>
+                  </div>
+                ))}
+              </div>
 
-          {telemetry.coreDetails && (
-            <div className="cel-core-details">
-              <div className="cel-core-title">⚛ STRUCTURAL ANALYSIS</div>
-              {telemetry.coreDetails.map(l => (
-                <div key={l.layer} className="cel-core-row">
-                  <span className="cel-core-layer">{l.layer}</span>
-                  <span className="cel-core-desc">{l.desc}</span>
+              <div className="cel-status" style={{ borderColor: `${telemetry.sCol}44`, color: telemetry.sCol }}>
+                {telemetry.status}
+              </div>
+
+              <div className="cel-orbit-hint">
+                <span>🖱 Drag · Scroll to zoom around planet</span>
+              </div>
+
+              {telemetry.coreDetails && (
+                <div className="cel-core-details">
+                  <div className="cel-core-title">⚛ STRUCTURAL ANALYSIS</div>
+                  {telemetry.coreDetails.map(l => (
+                    <div key={l.layer} className="cel-core-row">
+                      <span className="cel-core-layer">{l.layer}</span>
+                      <span className="cel-core-desc">{l.desc}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -770,7 +852,9 @@ export default function CelestialPage() {
 
       {/* Hint */}
       <div className="cel-hint">
-        {lockedPlanet
+        {isLandscapeMobile
+          ? 'LANDSCAPE MODE ACTIVE — FULLSCREEN REQUESTED'
+          : lockedPlanet
           ? `ORBITING ${lockedPlanet} — DRAG · SCROLL ZOOM · TAP PLANET TO FREE`
           : 'DRAG TO PAN · CLICK PLANET TO LOCK · SCROLL ZOOM'}
       </div>

@@ -263,6 +263,18 @@ export default function LabsPage() {
     return () => window.removeEventListener('resize', syncViewport)
   }, [])
 
+  useEffect(() => {
+    const jumpToHashModule = () => {
+      const hash = window.location.hash.toLowerCase()
+      if (hash === '#coffee-brewer' || hash === '#brew' || hash === '#coffee') {
+        setActiveIdx(1)
+      }
+    }
+    jumpToHashModule()
+    window.addEventListener('hashchange', jumpToHashModule)
+    return () => window.removeEventListener('hashchange', jumpToHashModule)
+  }, [])
+
   const mod = MODULES[activeIdx]
   const modelGroupRef = useRef()
   const [rotation, setRotation] = useState([0, 0, 0])

@@ -14,15 +14,23 @@ export default function Hero() {
   const [allowHeavyEffects, setAllowHeavyEffects] = useState(canRenderHeavyHero)
   const [typedRole, setTypedRole] = useState('')
   const [unicornVisible, setUnicornVisible] = useState(true)
+  const [initialDims, setInitialDims] = useState({ w: '100%', h: '100%' })
   const sectionRef = useRef(null)
   const roleText = 'CEO && DEVELOPER'
+
+  useEffect(() => {
+    // Lock dimensions on mount to prevent mobile resize chaos
+    if (typeof window !== 'undefined') {
+      setInitialDims({ w: window.innerWidth, h: window.innerHeight })
+    }
+  }, [])
 
   // Hide UnicornStudio when scrolled past hero to prevent mobile resize crashes
   useEffect(() => {
     const handleScroll = () => {
       if (!sectionRef.current) return
       const heroHeight = sectionRef.current.offsetHeight
-      setUnicornVisible(window.scrollY < heroHeight * 0.85)
+      setUnicornVisible(window.scrollY < heroHeight * 1.5)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -66,9 +74,8 @@ export default function Hero() {
           id="unicorn-wrapper"
           className="hero-bg-layer"
           style={{
-            // On mobile: freeze the wrapper position so address-bar resize
-            // events don't collapse the canvas. Visibility hides it cleanly
-            // once user scrolls past the hero.
+            width: typeof initialDims.w === 'number' ? `${initialDims.w}px` : '100%',
+            height: typeof initialDims.h === 'number' ? `${initialDims.h}px` : '100%',
             visibility: unicornVisible ? 'visible' : 'hidden',
             opacity: unicornVisible ? 1 : 0,
             transition: 'opacity 0.3s ease',

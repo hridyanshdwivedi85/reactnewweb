@@ -98,10 +98,9 @@ export default function Hero() {
       </div>
 
       {/* Cover Unicorn Badge with Stylish Enter Portfolio Button */}
-      <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+      <div className="hero-enter-wrap">
         <a 
-          href="#about" 
-          onClick={e => { e.preventDefault(); document.querySelector('#work')?.scrollIntoView({ behavior: 'smooth' }) }}
+          href="/labs#coffee-brewer"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -122,7 +121,7 @@ export default function Hero() {
           }}
           className="hover-glow"
         >
-          Enter Portfolio <span style={{ marginLeft: '8px', color: '#7c3aed' }}>→</span>
+          Wanna make Coffee? <span style={{ marginLeft: '8px', color: '#7c3aed' }}>→</span>
         </a>
       </div>
 

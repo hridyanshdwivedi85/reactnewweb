@@ -256,13 +256,23 @@ img { max-width: 100%; }
   position: relative;
   height: 100svh;
   min-height: 100dvh;
+  isolation: isolate;
+}
+
+.hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .landing-container {
   width: var(--cWidth, 100%);
   margin: auto;
   height: 100%;
-  position: relative;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
   max-width: var(--cMaxWidth, 1920px);
 }
 
@@ -1733,6 +1743,15 @@ h2.landing-info-h2 {
     radial-gradient(circle at 80% 75%, rgba(6, 182, 212, 0.2), transparent 45%),
     linear-gradient(135deg, rgba(7, 8, 20, 0.8), rgba(10, 16, 32, 0.65));
   z-index: 0;
+}
+
+
+@media (max-width: 900px) {
+  .hero-bg-layer {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+  }
 }
 
 .hero-cmd-box {

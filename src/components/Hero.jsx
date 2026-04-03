@@ -16,10 +16,18 @@ export default function Hero() {
   const roleText = 'CEO && DEVELOPER'
 
   useEffect(() => {
-    const update = () => setAllowHeavyEffects(canRenderHeavyHero())
-    update()
-    window.addEventListener('resize', update, { passive: true })
-    return () => window.removeEventListener('resize', update)
+    setAllowHeavyEffects(canRenderHeavyHero())
+
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleMotionPrefChange = () => setAllowHeavyEffects(canRenderHeavyHero())
+
+    if (typeof reducedMotionQuery.addEventListener === 'function') {
+      reducedMotionQuery.addEventListener('change', handleMotionPrefChange)
+      return () => reducedMotionQuery.removeEventListener('change', handleMotionPrefChange)
+    }
+
+    reducedMotionQuery.addListener(handleMotionPrefChange)
+    return () => reducedMotionQuery.removeListener(handleMotionPrefChange)
   }, [])
 
   useEffect(() => {

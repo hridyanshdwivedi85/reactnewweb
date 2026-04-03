@@ -97,34 +97,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Cover Unicorn Badge with Stylish Enter Portfolio Button */}
-      <div className="hero-enter-wrap">
-        <a 
-          href="/labs#coffee-brewer"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '12px 28px',
-            backgroundColor: 'rgba(5, 5, 20, 0.85)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '30px',
-            color: '#fff',
-            fontSize: '13px',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            fontWeight: 700,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(12px)',
-            transition: 'all 0.3s ease',
-            cursor: 'pointer'
-          }}
-          className="hover-glow"
-        >
-          Wanna make Coffee? <span style={{ marginLeft: '8px', color: '#7c3aed' }}>→</span>
-        </a>
-      </div>
-
       {allowHeavyEffects ? (
         <Suspense fallback={null}>
           <CharacterScene />

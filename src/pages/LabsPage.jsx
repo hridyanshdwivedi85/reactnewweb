@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, MeshDistortMaterial, Sphere, Points, PointMaterial, Torus, Stars, ContactShadows, Float, MeshWobbleMaterial } from '@react-three/drei'
+import { MeshDistortMaterial, Sphere, Points, PointMaterial, Torus, Stars, ContactShadows, Float, MeshWobbleMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import '../labs.css'
@@ -147,7 +147,7 @@ function SpatialAudioVisualizer({ active }) {
 }
 
 /* ── MAIN SCENE CONTROLLER ── */
-function LabScene({ activeIdx }) {
+function LabScene({ activeIdx, visualRotationY = 0 }) {
   // Only render 3D elements for Neural (0), Compiler (2), Audio (3)
   if (activeIdx === 1 || activeIdx === 4) return null;
 
@@ -160,7 +160,7 @@ function LabScene({ activeIdx }) {
       {/* Background stars for a deep space aesthetic */}
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       
-      <group position={[3, 0, 0]}>
+      <group position={[3, 0, 0]} rotation={[0, visualRotationY, 0]}>
         {activeIdx === 0 && <NeuralVisualizer active={true} />}
         {activeIdx === 2 && <CompilerVisualizer active={true} />}
         {activeIdx === 3 && <SpatialAudioVisualizer active={true} />}
@@ -174,7 +174,11 @@ function LabScene({ activeIdx }) {
 /* ── MAIN PAGE COMPONENT ── */
 export default function LabsPage() {
   const [activeIdx, setActiveIdx] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
+  const [isSmallMobile, setIsSmallMobile] = useState(false)
+  const [visualRotationY, setVisualRotationY] = useState(0)
   const infoRef = useRef(null)
+  const dragRef = useRef({ active: false, x: 0, base: 0 })
 
   const goTo = (idx) => {
     if (idx === activeIdx) return
@@ -209,33 +213,58 @@ export default function LabsPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [activeIdx])
 
+  useEffect(() => {
+    const syncViewport = () => {
+      setIsMobile(window.innerWidth <= 768)
+      setIsSmallMobile(window.innerWidth <= 480)
+    }
+    syncViewport()
+    window.addEventListener('resize', syncViewport, { passive: true })
+    return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
   const mod = MODULES[activeIdx]
+  const isVisualModule = [0, 2, 3].includes(activeIdx)
+
+  const handlePointerDown = (e) => {
+    if (!isVisualModule) return
+    dragRef.current = { active: true, x: e.clientX, base: visualRotationY }
+  }
+
+  const handlePointerMove = (e) => {
+    if (!dragRef.current.active || !isVisualModule) return
+    const delta = (e.clientX - dragRef.current.x) * 0.008
+    setVisualRotationY(dragRef.current.base + delta)
+  }
+
+  const stopDrag = () => {
+    dragRef.current.active = false
+  }
 
   return (
-    <div className="labs-slider-page" style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#05050d', overflow: 'hidden' }}>
+    <div
+      className="labs-slider-page"
+      style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#05050d', overflow: 'hidden' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
+      onPointerLeave={stopDrag}
+    >
       
       {/* ── THREE.JS CANVAS (OUTPUT) ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, transition: 'opacity 0.6s', opacity: [0, 2, 3].includes(activeIdx) ? 1 : 0 }}>
-        <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
-          <LabScene activeIdx={activeIdx} />
-          {/* Subtle slow pan */}
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false}
-            autoRotate={true}
-            autoRotateSpeed={0.5}
-            minPolarAngle={Math.PI / 2.5}
-            maxPolarAngle={Math.PI / 1.5}
-          />
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, transition: 'opacity 0.6s', opacity: [0, 2, 3].includes(activeIdx) ? 1 : 0 }}>
+        <Canvas camera={{ position: [0, 0, 8], fov: isMobile ? 50 : 45 }}>
+          <LabScene activeIdx={activeIdx} visualRotationY={visualRotationY} />
         </Canvas>
       </div>
 
       {/* ── CUSTOM DOM COMPONENTS ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: activeIdx === 1 ? 'auto' : 'none', transition: 'opacity 0.6s, transform 0.6s', opacity: activeIdx === 1 ? 1 : 0, transform: activeIdx === 1 ? 'scale(1)' : 'scale(1.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, pointerEvents: activeIdx === 1 ? 'auto' : 'none', transition: 'opacity 0.6s, transform 0.6s', opacity: activeIdx === 1 ? 1 : 0, transform: activeIdx === 1 ? 'scale(1)' : 'scale(1.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {activeIdx === 1 && <CoffeeBrewerUI active={activeIdx === 1} />}
       </div>
       
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: activeIdx === 4 ? 'auto' : 'none', transition: 'opacity 1s ease', opacity: activeIdx === 4 ? 1 : 0 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, top: isMobile ? '34%' : 0, bottom: 0, zIndex: 0, pointerEvents: activeIdx === 4 ? 'auto' : 'none', transition: 'opacity 1s ease', opacity: activeIdx === 4 ? 1 : 0 }}>
         {activeIdx === 4 && <EntropyCremaCanvas active={activeIdx === 4} />}
       </div>
 
@@ -243,12 +272,12 @@ export default function LabsPage() {
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', transition: 'opacity 0.6s', opacity: (activeIdx === 1 || activeIdx === 4) ? 0 : 1, background: 'linear-gradient(90deg, rgba(5,5,13,0.95) 0%, rgba(5,5,13,0.6) 40%, transparent 100%)', zIndex: 1 }} />
 
       {/* ── TOP HUD ── */}
-      <div className="labs-hud-top" style={{ zIndex: 10, position: 'absolute', top: 0, width: '100%', padding: '30px 40px', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <div className="labs-hud-top" style={{ zIndex: 10, position: 'absolute', top: 0, width: '100%', padding: isMobile ? '18px 16px' : '30px 40px', display: 'flex', justifyContent: 'space-between', boxSizing: 'border-box' }}>
         <Link to="/" className="labs-back-btn hover:text-white transition-colors flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '12px' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           Hub
         </Link>
-        <div style={{ letterSpacing: '4px', textTransform: 'uppercase', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ letterSpacing: isMobile ? '2px' : '4px', textTransform: 'uppercase', fontSize: isMobile ? '9px' : '11px', color: 'rgba(255,255,255,0.4)' }}>
           SYSTEM OUTPUT: LABS
         </div>
       </div>
@@ -258,31 +287,31 @@ export default function LabsPage() {
         ref={infoRef}
         style={{
           position: 'absolute',
-          left: '5%',
-          top: '50%',
-          transform: 'translateY(-50%)',
+          left: isMobile ? '0' : '5%',
+          top: isMobile ? '76px' : '50%',
+          transform: isMobile ? 'none' : 'translateY(-50%)',
           width: '100%',
-          maxWidth: '450px',
+          maxWidth: isMobile ? '100%' : '450px',
           zIndex: 10,
-          padding: '40px',
+          padding: isMobile ? '14px 16px 0' : '40px',
           opacity: (activeIdx === 1 || activeIdx === 4) ? 0 : 1, // Completely hide logic panel for Coffee & Entropy
           pointerEvents: (activeIdx === 1 || activeIdx === 4) ? 'none' : 'auto',
           transition: 'opacity 0.5s ease'
         }}
       >
-        <p style={{ color: mod.color, letterSpacing: '3px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '16px' }}>
+        <p style={{ color: mod.color, letterSpacing: isMobile ? '2px' : '3px', fontSize: isMobile ? '9px' : '10px', textTransform: 'uppercase', fontWeight: 700, marginBottom: isMobile ? '10px' : '16px' }}>
           {mod.tag}
         </p>
-        <h1 style={{ color: '#fff', fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, margin: '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800 }}>
+        <h1 style={{ color: '#fff', fontSize: isMobile ? 'clamp(1.4rem, 7vw, 2rem)' : 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, margin: isMobile ? '0 0 12px' : '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800 }}>
           {mod.name}
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', lineHeight: 1.7, marginBottom: '32px' }}>
+        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isMobile ? '12px' : '15px', lineHeight: isMobile ? 1.45 : 1.7, marginBottom: isMobile ? '12px' : '32px', maxWidth: isMobile ? '95%' : '100%' }}>
           {mod.desc}
         </p>
         
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '6px' : '10px', flexWrap: 'wrap' }}>
           {mod.tech.map((t, idx) => (
-            <span key={idx} style={{ padding: '6px 12px', border: `1px solid ${mod.color}40`, borderRadius: '4px', fontSize: '11px', color: mod.color, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <span key={idx} style={{ padding: isMobile ? '4px 8px' : '6px 12px', border: `1px solid ${mod.color}40`, borderRadius: '4px', fontSize: isMobile ? '9px' : '11px', color: mod.color, textTransform: 'uppercase', letterSpacing: '1px' }}>
               {t}
             </span>
           ))}
@@ -290,12 +319,12 @@ export default function LabsPage() {
       </div>
 
       {/* ── NAVIGATION CONTROLS (BOTTOM HUD) ── */}
-      <div style={{ position: 'absolute', bottom: '40px', left: '0', width: '100%', padding: '0 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div style={{ position: 'absolute', bottom: isMobile ? '18px' : '40px', left: '0', width: '100%', padding: isMobile ? '0 14px' : '0 5%', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-end' : 'center', zIndex: 10, boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '20px' }}>
           <button 
             onClick={prev}
             disabled={activeIdx === 0}
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: activeIdx === 0 ? 'rgba(255,255,255,0.2)' : '#fff', width: '44px', height: '44px', borderRadius: '50%', cursor: activeIdx === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: activeIdx === 0 ? 'rgba(255,255,255,0.2)' : '#fff', width: isSmallMobile ? '36px' : '44px', height: isSmallMobile ? '36px' : '44px', borderRadius: '50%', cursor: activeIdx === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
@@ -321,19 +350,25 @@ export default function LabsPage() {
           <button 
             onClick={next}
             disabled={activeIdx === MODULES.length - 1}
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: activeIdx === MODULES.length - 1 ? 'rgba(255,255,255,0.2)' : '#fff', width: '44px', height: '44px', borderRadius: '50%', cursor: activeIdx === MODULES.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: activeIdx === MODULES.length - 1 ? 'rgba(255,255,255,0.2)' : '#fff', width: isSmallMobile ? '36px' : '44px', height: isSmallMobile ? '36px' : '44px', borderRadius: '50%', cursor: activeIdx === MODULES.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', fontSize: '14px', letterSpacing: '4px', color: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}>
-          <span style={{ color: mod.color, fontSize: '32px', lineHeight: '0.8', marginRight: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', fontSize: isMobile ? '10px' : '14px', letterSpacing: isMobile ? '2px' : '4px', color: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}>
+          <span style={{ color: mod.color, fontSize: isMobile ? '22px' : '32px', lineHeight: '0.8', marginRight: '6px' }}>
             0{activeIdx + 1}
           </span>
           / 05
         </div>
       </div>
+
+      {isVisualModule && (
+        <div style={{ position: 'absolute', right: '14px', top: isMobile ? '36%' : 'auto', bottom: isMobile ? 'auto' : '110px', zIndex: 11, fontSize: isMobile ? '9px' : '10px', letterSpacing: '1.8px', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.15)', padding: isMobile ? '5px 8px' : '7px 10px', borderRadius: '999px' }}>
+          Drag to rotate visual
+        </div>
+      )}
     </div>
   )
 }

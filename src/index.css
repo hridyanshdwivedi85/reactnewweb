@@ -1462,7 +1462,6 @@ h2.landing-info-h2 {
   pointer-events: none;
 }
 .br-nike-shoe {
-  filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 50px rgba(99, 102, 241, 0.45)) saturate(1.2) contrast(1.12);
   transform: scale(1.05);
 }
 .br-tech-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 1px dashed rgba(255,255,255,0.15); transform: translate(-50%,-50%); width: 90%; height: 90%; z-index: 28; pointer-events: none; }
@@ -1597,16 +1596,17 @@ h2.landing-info-h2 {
 @keyframes discGlowPulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
 /* Mobile branding */
 @media (max-width: 768px) {
-  .br-tl { position: relative; top: auto; left: auto; max-width: none; width: 100%; padding: 80px 20px 20px; }
+  .br-tl { position: relative; top: auto; left: auto; max-width: none; width: 100%; padding: 40px 20px 20px; }
   .br-br { position: relative; bottom: auto; right: auto; width: 100%; height: 40vh; }
   .br-huge-title { font-size: clamp(2rem, 10vw, 3.5rem); }
-  .br-arrows { bottom: 1rem; right: 1rem; }
-  .br-dots { bottom: 1.2rem; }
+  .br-arrows { bottom: 0.8rem; right: 0.8rem; transform: scale(0.85); }
+  .br-dots { bottom: 1rem; }
 }
 
 @media (max-width: 900px) {
+  .br-nav-top { height: 48px !important; padding: 0 12px; }
   .brand-page-v2.mobile .br-slide-content {
-    inset: 64px 0 96px;
+    inset: 48px 0 60px;
     align-items: stretch !important;
     justify-content: stretch !important;
   }

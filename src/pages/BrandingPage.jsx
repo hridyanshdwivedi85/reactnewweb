@@ -96,7 +96,7 @@ function NikeSlide({ active }) {
         <div className="br-tech-ring br-spin" />
         <div className="br-tech-ring br-ring-inner br-spin-rev" />
         <div className="br-nike-glow" />
-        <div className="br-product br-nike-shoe float-fast" style={{ backgroundImage: 'url(assets/images/fg_nike.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', width: '100%', height: '100%' }} />
+        <div className="br-product br-nike-shoe float-fast" style={{ backgroundImage: 'url(assets/images/nike_glow_shoe.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', width: '100%', height: '100%', mixBlendMode: 'screen' }} />
       </div>
     </>
   )

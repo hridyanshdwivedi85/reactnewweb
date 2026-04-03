@@ -1,21 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import FluidBackground from '../components/FluidBackground'
+import ShoeViewer from '../components/ShoeViewer'
+import CokeVendingMachine from '../components/CokeVendingMachine'
 
 /* ══════════════════════════════════════════
    BRANDING PAGE — 10 Slides
-   Full port of branding.html → React
    Nike · PS5 · Coke · Apple · ON Whey ·
    Cetaphil · Carlsberg · BMW · Xbox · GTA6
 ══════════════════════════════════════════ */
 
 const slides = [
   {
-    id: 'nike', theme: 'dark', cursor: '👟',
-    bg: 'url(assets/images/bg_nike.png)',
-    bgStyle: { filter: 'grayscale(100%) contrast(1.2) brightness(0.25)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' },
-    fluidColor: '#a0a0a0',
-    cardBg: 'rgba(20, 20, 20, 0.4)',
+    id: 'adidas', theme: 'dark', cursor: 'adidas',
+    bg: 'url(assets/images/bg_adidas.png)',
+    bgStyle: { filter: 'grayscale(100%) contrast(1.2) brightness(0.15)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' },
+    fluidColor: '#0033aa',
+    cardBg: 'rgba(10, 10, 20, 0.25)',
   },
   {
     id: 'ps5', theme: 'dark', cursor: '🎮',
@@ -80,29 +81,12 @@ const slides = [
   },
 ]
 
-/* Individual slide content components */
-function NikeSlide({ active }) {
-  return (
-    <>
-      <div className="br-text-block br-tl">
-        <div className="br-brand-label" style={{ fontFamily: 'Space Grotesk', fontWeight: 900, letterSpacing: '0.3em', fontSize: '0.85rem' }}>NIKE</div>
-        <h2 className="br-huge-title" style={{ fontFamily: 'Space Grotesk', color: '#fff' }}>
-          Defy<br /><span style={{ color: '#666' }}>Gravity.</span>
-        </h2>
-        <p className="br-sarcastic">"Because running from your problems requires aerodynamic support."</p>
-        <div className="br-price-tag"><span className="br-price-label">MSRP:</span><span className="br-price-val">$185.00</span></div>
-      </div>
-      <div className="br-visual-block br-br">
-        <div className="br-tech-ring br-spin" />
-        <div className="br-tech-ring br-ring-inner br-spin-rev" />
-        <div className="br-nike-glow" />
-        <div className="br-product br-nike-shoe float-fast" style={{ backgroundImage: 'url(assets/images/nike_glow_shoe.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', width: '100%', height: '100%', mixBlendMode: 'screen' }} />
-      </div>
-    </>
-  )
+/* ── Adidas Slide wrapping new 3D viewer ── */
+function AdidasSlide({ isMobile }) {
+  return <ShoeViewer isMobile={isMobile} />
 }
 
-function PS5Slide({ active }) {
+function PS5Slide() {
   return (
     <>
       <div className="br-ps5-glow" />
@@ -127,33 +111,12 @@ function PS5Slide({ active }) {
   )
 }
 
-function CokeSlide({ active, isMobile }) {
-  return (
-    <div className={`br-coke-layout ${isMobile ? 'br-coke-mobile' : ''}`}>
-      <div className="br-coke-noise" />
-      <div className="br-coke-left">
-        <div className="br-coke-ice" />
-        <img src="assets/images/coke_can.png" className="float-fast br-coke-can" alt="Coca-Cola" />
-      </div>
-      <div className="br-coke-right" style={{ display: 'flex', flexDirection: 'column', gap: '24px', justifyContent: 'center' }}>
-        <div className="br-coke-kicker" style={{ marginBottom: '5px' }}>EST. 1886 · ORIGINAL TASTE</div>
-        <div className="br-coke-brand" style={{ marginBottom: '10px' }}>Coca-Cola</div>
-        <h2 className="br-huge-title" style={{ color: '#fff', fontSize: isMobile ? '2.5rem' : 'clamp(3rem, 6vw, 5rem)', lineHeight: 1.1, marginBottom: '15px' }}>Open<br />Happiness.</h2>
-        <p className="br-sarcastic br-coke-copy" style={{ fontSize: isMobile ? '0.75rem' : '0.9rem', marginTop: '10px' }}>
-          "Scientifically proven to make pizza taste 300% better."
-        </p>
-        <div className="br-coke-meta">
-          <div className="br-price-tag br-coke-price">
-            <span className="br-price-val">{isMobile ? '$6.99' : '12-PACK: $6.99'}</span>
-          </div>
-          <span className="br-coke-chip">Zero Compromises</span>
-        </div>
-      </div>
-    </div>
-  )
+/* ── Coke Slide wrapping new Vending Machine ── */
+function CokeSlide({ isMobile }) {
+  return <CokeVendingMachine isMobile={isMobile} />
 }
 
-function AppleSlide({ active }) {
+function AppleSlide() {
   return (
     <>
       <div className="br-text-block" style={{ position: 'absolute', top: '50%', left: '10%', transform: 'translateY(-50%)', width: '40vw', zIndex: 40 }}>
@@ -178,7 +141,7 @@ function AppleSlide({ active }) {
   )
 }
 
-function OnSlide({ active }) {
+function OnSlide() {
   return (
     <>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-10deg)', fontFamily: 'Space Grotesk', fontSize: '25vw', fontWeight: 900, color: 'rgba(255,215,0,0.03)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 15 }}>
@@ -200,7 +163,7 @@ function OnSlide({ active }) {
   )
 }
 
-function CetaSlide({ active }) {
+function CetaSlide() {
   return (
     <>
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '70vw', height: '70vw', background: 'radial-gradient(circle, rgba(0,90,156,0.05) 0%, transparent 60%)', borderRadius: '50%', zIndex: 12 }} />
@@ -223,7 +186,7 @@ function CetaSlide({ active }) {
   )
 }
 
-function CarlsSlide({ active }) {
+function CarlsSlide() {
   return (
     <>
       <div className="br-text-block" style={{ position: 'absolute', top: '50%', left: '8%', transform: 'translateY(-50%)', zIndex: 40, maxWidth: '50vw' }}>
@@ -243,7 +206,7 @@ function CarlsSlide({ active }) {
   )
 }
 
-function BMWSlide({ active }) {
+function BMWSlide() {
   return (
     <>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, transparent 40%, rgba(0,102,204,0.08) 50%, transparent 60%)', zIndex: 11, pointerEvents: 'none' }} />
@@ -278,19 +241,10 @@ function BMWSlide({ active }) {
   )
 }
 
-function XboxSlide({ active, isMobile }) {
+function XboxSlide({ isMobile }) {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: isMobile ? 'flex-end' : 'center', padding: isMobile ? '80px 20px 40px' : '0 5%' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(to bottom, transparent 0px, transparent 5px, rgba(16,124,16,0.02) 5px, rgba(16,124,16,0.02) 6px)', zIndex: 11, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: isMobile ? '70%' : '50%', left: isMobile ? '50%' : '75%', transform: 'translate(-50%,-50%)', width: isMobile ? '80vw' : '60vw', height: isMobile ? '80vw' : '60vw', maxWidth: '700px', maxHeight: '700px', background: 'radial-gradient(circle, rgba(16,124,16,0.28) 0%, transparent 65%)', zIndex: 12, pointerEvents: 'none' }} />
-      
-      {!isMobile && (
-        <>
-          <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', width: '80px', height: '80px', borderTop: '2px solid rgba(16,180,16,0.5)', borderLeft: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
-          <div style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', width: '80px', height: '80px', borderBottom: '2px solid rgba(16,180,16,0.5)', borderRight: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
-        </>
-      )}
-
       <div id="xbox-text-block" className="br-text-block" style={{ position: isMobile ? 'static' : 'absolute', top: '50%', left: '8%', transform: isMobile ? 'none' : 'translateY(-50%)', zIndex: 40, maxWidth: isMobile ? '100%' : '44vw', textAlign: isMobile ? 'center' : 'left', marginBottom: isMobile ? '20px' : '0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
           <svg width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#107C10"/><line x1="22" y1="22" x2="78" y2="78" stroke="white" strokeWidth="11" strokeLinecap="round"/><line x1="78" y1="22" x2="22" y2="78" stroke="white" strokeWidth="11" strokeLinecap="round"/></svg>
@@ -302,99 +256,54 @@ function XboxSlide({ active, isMobile }) {
         <h2 style={{ fontFamily: 'Space Grotesk', fontSize: isMobile ? '2.2rem' : 'clamp(2rem,3.8vw,3.5rem)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.03em', color: '#fff', textShadow: '0 0 40px rgba(16,180,16,0.3)', marginBottom: '16px' }}>
           Next Gen.<br />Next Level.<br /><span style={{ background: 'linear-gradient(135deg,#52d152,#107C10)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No Excuses.</span>
         </h2>
-        <div style={{ fontFamily: 'JetBrains Mono', fontSize: isMobile ? '0.65rem' : 'clamp(0.6rem,0.95vw,0.75rem)', color: 'rgba(82,209,82,0.85)', background: 'rgba(16,124,16,0.08)', border: '1px solid rgba(16,180,16,0.2)', borderLeft: '3px solid #52d152', borderRadius: '4px', padding: '10px 16px', marginBottom: '20px', lineHeight: 1.65, maxWidth: isMobile ? '90%' : '100%', margin: isMobile ? '0 auto 20px' : '0 0 20px' }}>
-          // "12 teraflops. Your GPU is crying.<br />Your wallet is already in therapy."
-        </div>
-        {!isMobile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
-            {['12 TERAFLOPS GPU · RDNA 2', '1TB NVME SSD · ZERO LOAD SCREENS', '4K 120FPS · DOLBY VISION', 'QUICK RESUME · 6 GAMES'].map(s => (
-              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'JetBrains Mono', fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.08em' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#52d152', boxShadow: '0 0 6px #52d152', flexShrink: 0 }} />
-                {s}
-              </div>
-            ))}
-          </div>
-        )}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'rgba(16,124,16,0.15)', border: '1px solid rgba(16,180,16,0.3)', borderRadius: '999px', padding: '8px 22px' }}>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#52d152' }}>STARTING AT</span>
           <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '1.3rem', color: '#fff' }}>$499.99</span>
         </div>
       </div>
-      <div className="br-visual-block" style={{ position: isMobile ? 'relative' : 'absolute', top: isMobile ? 'auto' : '50%', left: isMobile ? 'auto' : '75%', transform: isMobile ? 'none' : 'translate(-50%,-50%)', width: isMobile ? '70vw' : '42vw', height: isMobile ? '40vh' : '80vh', zIndex: 30, marginTop: isMobile ? '20px' : '0' }}>
-        <div className="br-pulse-ring br-pulse" style={{ borderColor: 'rgba(16,180,16,0.3)', display: isMobile ? 'none' : 'block' }} />
+      <div className="br-visual-block" style={{ position: isMobile ? 'relative' : 'absolute', top: isMobile ? 'auto' : '50%', left: isMobile ? 'auto' : '75%', transform: isMobile ? 'none' : 'translate(-50%,-50%)', width: isMobile ? '70vw' : '42vw', height: isMobile ? '40vh' : '80vh', zIndex: 30 }}>
         <img src="assets/images/xbox_real.png" className="float-vertical" alt="Xbox Series X" style={{ width: '100%', height: isMobile ? '100%' : '85%', objectFit: 'contain', filter: 'drop-shadow(0 0 60px rgba(16,180,16,0.35))' }} />
       </div>
     </div>
   )
 }
 
-function GTA6Slide({ active, isMobile }) {
+function GTA6Slide({ isMobile }) {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(6,6,10,0.75) 0%, rgba(6,6,10,0.2) 40%, rgba(6,6,10,0.5) 70%, rgba(6,6,10,0.92) 100%)', zIndex: 11, pointerEvents: 'none' }} />
-      {!isMobile && (
-        <>
-          <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to right, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to left, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
-        </>
-      )}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, transparent, #FF6E1E, #FF3E8A, #FF6E1E, transparent)', zIndex: 60 }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, transparent, #FF6E1E, #FF3E8A, #FF6E1E, transparent)', zIndex: 60 }} />
-      <div style={{ position: 'absolute', bottom: isMobile ? '20%' : '-10%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '40vh', background: 'radial-gradient(ellipse, rgba(255,110,30,0.18) 0%, transparent 70%)', zIndex: 14, pointerEvents: 'none' }} />
-
-      <div style={{ 
-        position: isMobile ? 'relative' : 'absolute', 
-        inset: isMobile ? 'auto' : 0, 
-        zIndex: 40, 
-        display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: 'center', 
-        padding: isMobile ? '80px 24px 24px' : '0 5%', 
-        gap: isMobile ? '2rem' : '2vw',
-        width: '100%',
-        height: '100%'
-      }}>
-        {/* Text Area */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', padding: isMobile ? '80px 24px 24px' : '0 5%', gap: isMobile ? '2rem' : '2vw', width: '100%', height: '100%' }}>
         <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
           <div style={{ background: 'rgba(6,6,10,0.55)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,110,30,0.12)', borderRadius: '12px', padding: isMobile ? '20px' : '28px 32px', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left' }}>
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.65rem', letterSpacing: '0.45em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>▸ ROCKSTAR GAMES PRESENTS</div>
             <img src="assets/images/gta6.png" alt="GTA VI" style={{ width: 'auto', maxWidth: '100%', height: isMobile ? '60px' : 'clamp(60px,10vw,120px)', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(255,110,30,0.5))' }} onError={e => e.target.style.display='none'} />
-            <div style={{ fontFamily: 'JetBrains Mono', fontSize: 'clamp(0.55rem,0.85vw,0.72rem)', letterSpacing: '0.45em', color: 'rgba(255,80,30,0.95)', textTransform: 'uppercase' }}>◈  COMING 2025  ◈</div>
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: 'rgba(255,140,80,0.9)', lineHeight: 1.65 }}>
-              // "Finally — a game that lets you simulate crime,<br />traffic jams & moral bankruptcy at 60fps."
+              // "Finally — a game that lets you simulate crime,<br />traffic jams &amp; moral bankruptcy at 60fps."
             </div>
             <button style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #FF6E1E, #FF3E8A)', color: '#fff', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '13px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', boxShadow: '0 0 25px rgba(255,110,30,0.4)', width: 'fit-content' }}>
               🎮 Pre-Book
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.8rem' : '1.2rem', justifyContent: 'center' }}>
-              {[{ n: '170M+', l: 'Sold' }, { n: '$2B+', l: 'Day-1' }, { n: '∞', l: 'Chaos' }].map((s, i) => (
-                <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
-                  {i > 0 && <div style={{ width: '1px', height: isMobile ? '24px' : '36px', background: 'rgba(255,255,255,0.12)' }} />}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: 'Space Grotesk', fontSize: isMobile ? '1.1rem' : '1.4rem', fontWeight: 700, color: '#FF6E1E' }}>{s.n}</span>
-                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.45rem', letterSpacing: '0.18em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>{s.l}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
-
-        {/* CD Area */}
         <div style={{ flex: '0 0 auto', width: isMobile ? '60vw' : '42vw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           <div style={{ position: 'relative', width: isMobile ? '180px' : 'clamp(180px,28vw,360px)', height: isMobile ? '180px' : 'clamp(180px,28vw,360px)' }}>
-            <div style={{ position: 'absolute', inset: '-15%', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,110,30,0.15) 0%, transparent 65%)', animation: 'discGlowPulse 3s ease-in-out infinite', pointerEvents: 'none' }} />
-            <img src="assets/images/cd.png" alt="GTA 6 Disc" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', animation: 'discSpin 10s linear infinite', filter: 'drop-shadow(0 0 30px rgba(255,110,30,0.55)) drop-shadow(0 0 60px rgba(255,60,130,0.25))', position: 'relative', zIndex: 2 }} onError={e => e.target.style.display='none'} />
+            <img src="assets/images/cd.png" alt="GTA 6 Disc" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', animation: 'discSpin 10s linear infinite', filter: 'drop-shadow(0 0 30px rgba(255,110,30,0.55))' }} onError={e => e.target.style.display='none'} />
           </div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.5rem', letterSpacing: '0.35em', color: 'rgba(255,80,30,0.95)', textTransform: 'uppercase' }}>▶ PHYSICAL EDITION ◀</div>
         </div>
       </div>
     </div>
   )
 }
 
-const slideComponents = [NikeSlide, PS5Slide, CokeSlide, AppleSlide, OnSlide, CetaSlide, CarlsSlide, BMWSlide, XboxSlide, GTA6Slide]
-const slideNames = ['NIKE', 'PS5', 'COLA', 'APPLE', 'ON', 'CETA', 'CARLS', 'BMW', 'XBOX', 'GTA6']
+const slideComponents = [AdidasSlide, PS5Slide, CokeSlide, AppleSlide, OnSlide, CetaSlide, CarlsSlide, BMWSlide, XboxSlide, GTA6Slide]
+const slideNames = ['ADIDAS', 'PS5', 'COLA', 'APPLE', 'ON', 'CETA', 'CARLS', 'BMW', 'XBOX', 'GTA6']
+const slideIcons = ['👟', '🎮', '🥤', '🍎', '💪', '🌿', '🍺', '🚗', '🎮', '🎯']
+
+/* Adidas logo cursor SVG data URI (Simplified) */
+const ADIDAS_CURSOR_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M2 18h4l6-10H8zm7 0h4l4-7h-4zm7 0h4l2-4h-4z' fill='white' opacity='0.92'/></svg>`
+const ADIDAS_CURSOR = `url("data:image/svg+xml;utf8,${encodeURIComponent(ADIDAS_CURSOR_SVG)}") 12 12, auto`
 
 export default function BrandingPage() {
   const [current, setCurrent] = useState(0)
@@ -412,14 +321,10 @@ export default function BrandingPage() {
   const prev = useCallback(() => { if (current > 0) goTo(current - 1) }, [current, goTo])
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'ArrowRight') next()
-      if (e.key === 'ArrowLeft') prev()
-    }
+    const onKey = (e) => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [next, prev])
-
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 900)
@@ -428,44 +333,55 @@ export default function BrandingPage() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const handleTouchStart = (e) => {
-    touchStart.current = e.touches[0].clientX
-  }
-
+  const handleTouchStart = (e) => { touchStart.current = e.touches[0].clientX }
   const handleTouchEnd = (e) => {
     if (touchStart.current == null) return
     const delta = e.changedTouches[0].clientX - touchStart.current
-    if (Math.abs(delta) > 50) {
-      if (delta < 0) next()
-      else prev()
-    }
+    if (Math.abs(delta) > 50) { if (delta < 0) next(); else prev() }
     touchStart.current = null
   }
 
   const s = slides[current]
   const SlideContent = slideComponents[current]
   const isLight = s.theme === 'light'
+  const isAdidas = s.id === 'adidas'
+  const isCoke = s.id === 'coke'
+  /* Adidas/Coke slides render their own full canvas — skip glass card framing */
+  const isFullCanvas = isAdidas || isCoke
+
+  const customCursor = isAdidas ? ADIDAS_CURSOR : 'auto'
 
   return (
-    <div className={`brand-page-v2 ${isMobile ? 'mobile' : ''}`} style={{ background: '#000' }}>
-      <FluidBackground baseColor={s.fluidColor} lowPower={isMobile} />
+    <div
+      className={`brand-page-v2 ${isMobile ? 'mobile' : ''}`}
+      style={{ background: '#000', cursor: customCursor }}
+    >
+      {/* Skip FluidBackground for slides that render their own WebGL Canvas to avoid context loss */}
+      {!isFullCanvas && <FluidBackground baseColor={s.fluidColor} lowPower={isMobile} />}
 
-      {/* Slide Content wrapped in an elegant glass card */}
-      <div className={`br-slide-content ${transitioning ? 'br-slide-out' : 'br-slide-in'}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-        <div className="br-ad-card" style={{
-          position: 'relative',
-          width: isMobile ? '100%' : '95vw',
-          height: isMobile ? '100%' : '90vh',
-          background: isMobile ? 'transparent' : s.cardBg || 'rgba(10, 10, 15, 0.4)',
-          backdropFilter: isMobile ? 'none' : 'blur(24px)',
-          WebkitBackdropFilter: isMobile ? 'none' : 'blur(24px)',
-          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: isMobile ? '0' : '24px',
-          overflow: 'hidden',
-          boxShadow: isMobile ? 'none' : '0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row'
-        }}>
+      {/* Slide Content */}
+      <div
+        className={`br-slide-content ${transitioning ? 'br-slide-out' : 'br-slide-in'}`}
+        onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
+      >
+        <div
+          className="br-ad-card"
+          style={{
+            position: 'relative',
+            width: isMobile ? '100%' : '95vw',
+            height: isMobile ? '100%' : '90vh',
+            background: isFullCanvas ? 'transparent' : (isMobile ? 'transparent' : s.cardBg || 'rgba(10, 10, 15, 0.4)'),
+            backdropFilter: (isFullCanvas || isMobile) ? 'none' : 'blur(24px)',
+            WebkitBackdropFilter: (isFullCanvas || isMobile) ? 'none' : 'blur(24px)',
+            border: (isFullCanvas || isMobile) ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: (isFullCanvas || isMobile) ? '0' : '24px',
+            overflow: 'hidden',
+            boxShadow: (isFullCanvas || isMobile) ? 'none' : '0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+          }}
+        >
           <SlideContent active={!transitioning} isMobile={isMobile} />
         </div>
       </div>
@@ -485,27 +401,50 @@ export default function BrandingPage() {
         </div>
       </div>
 
-      {/* Prev / Next arrows */}
-      <div className="br-arrows">
-        <button className="br-arrow" onClick={prev} disabled={current === 0}
-          style={{ background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.5)', color: isLight ? '#000' : '#fff', border: `1px solid ${isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
-          ‹
-        </button>
-        <button className="br-arrow" onClick={next} disabled={current === slides.length - 1}
-          style={{ background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.5)', color: isLight ? '#000' : '#fff', border: `1px solid ${isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
-          ›
-        </button>
-      </div>
+      {/* Prev / Next arrows — hide on mobile (replaced by bottom nav) */}
+      {!isMobile && (
+        <div className="br-arrows">
+          <button className="br-arrow" onClick={prev} disabled={current === 0}
+            style={{ background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.5)', color: isLight ? '#000' : '#fff', border: `1px solid ${isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
+            ‹
+          </button>
+          <button className="br-arrow" onClick={next} disabled={current === slides.length - 1}
+            style={{ background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.5)', color: isLight ? '#000' : '#fff', border: `1px solid ${isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'}` }}>
+            ›
+          </button>
+        </div>
+      )}
 
-      {/* Dot indicators */}
-      <div className="br-dots">
-        {slides.map((_, i) => (
-          <button key={i} className={`br-dot ${i === current ? 'br-dot-active' : ''}`}
-            onClick={() => goTo(i)}
-            style={{ background: i === current ? '#fff' : 'rgba(255,255,255,0.3)' }}
-          />
-        ))}
-      </div>
+      {/* Desktop dot indicators */}
+      {!isMobile && (
+        <div className="br-dots">
+          {slides.map((_, i) => (
+            <button key={i} className={`br-dot ${i === current ? 'br-dot-active' : ''}`}
+              onClick={() => goTo(i)}
+              style={{ background: i === current ? '#fff' : 'rgba(255,255,255,0.3)' }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Mobile Bottom Tab Bar */}
+      {isMobile && (
+        <div className="br-mobile-tab-bar">
+          <div className="br-mobile-tab-scroll">
+            {slides.map((sl, i) => (
+              <button
+                key={i}
+                className={`br-mobile-tab ${i === current ? 'br-mobile-tab-active' : ''}`}
+                onClick={() => goTo(i)}
+              >
+                <span className="br-mobile-tab-icon">{slideIcons[i]}</span>
+                <span className="br-mobile-tab-label">{slideNames[i]}</span>
+                {i === current && <span className="br-mobile-tab-dot" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -57,10 +57,10 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="landing-section" id="landingDiv" style={{ position: 'relative', overflow: 'hidden' }}>
+    <section className="landing-section" id="landingDiv">
       {/* Background UnicornStudio animation */}
       {allowHeavyEffects ? (
-        <div id="unicorn-wrapper" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <div id="unicorn-wrapper" className="hero-bg-layer">
           <UnicornScene
             projectId="7bzzYJGvMvu0GRawnv9y"
             width="100%"
@@ -71,7 +71,7 @@ export default function Hero() {
           />
         </div>
       ) : (
-        <div className="hero-fallback-bg" aria-hidden="true" />
+        <div className="hero-fallback-bg hero-bg-layer" aria-hidden="true" />
       )}
 
       {/* Background circles from the new design */}
@@ -79,7 +79,7 @@ export default function Hero() {
       <div className="landing-circle2"></div>
       <div className="nav-fade" style={{ zIndex: 1 }}></div>
 
-      <div className="landing-container" style={{ position: 'relative', zIndex: 10 }}>
+      <div className="landing-container">
         <div className="landing-intro">
           <h2>Hello! I'm</h2>
           <h1>

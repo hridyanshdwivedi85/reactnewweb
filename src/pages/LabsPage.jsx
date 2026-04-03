@@ -221,6 +221,7 @@ export default function LabsPage() {
     return () => window.removeEventListener('resize', syncViewport)
   }, [])
 
+  const mod = MODULES[activeIdx]
   const modelGroupRef = useRef()
   const [rotation, setRotation] = useState([0, 0, 0])
 

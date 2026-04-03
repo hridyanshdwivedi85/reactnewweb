@@ -257,6 +257,8 @@ img { max-width: 100%; }
   height: 100vh;
   min-height: 100vh;
   isolation: isolate;
+  /* Clip particles & any overflow so nothing bleeds into sections below */
+  overflow: hidden;
 }
 
 .hero-bg-layer {
@@ -264,13 +266,10 @@ img { max-width: 100%; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-}
-
-.hero-bg-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+  /* Prevent mobile resize flicker for WebGL/iframe children */
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .landing-container {
@@ -425,6 +424,8 @@ img { max-width: 100%; }
   width: 100%;
   height: 100%;
   pointer-events: none;
+  /* Clip particles to hero bounds */
+  overflow: hidden;
 }
 .character-container * {
   pointer-events: auto;

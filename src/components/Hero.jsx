@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useState, useRef } from 'react'
 import UnicornScene from 'unicornstudio-react'
 
 const CharacterScene = lazy(() => import('./CharacterScene'))
@@ -13,19 +13,29 @@ function canRenderHeavyHero() {
 export default function Hero() {
   const [allowHeavyEffects, setAllowHeavyEffects] = useState(canRenderHeavyHero)
   const [typedRole, setTypedRole] = useState('')
+  const [unicornVisible, setUnicornVisible] = useState(true)
+  const sectionRef = useRef(null)
   const roleText = 'CEO && DEVELOPER'
+
+  // Hide UnicornStudio when scrolled past hero to prevent mobile resize crashes
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return
+      const heroHeight = sectionRef.current.offsetHeight
+      setUnicornVisible(window.scrollY < heroHeight * 0.85)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     setAllowHeavyEffects(canRenderHeavyHero())
-
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const handleMotionPrefChange = () => setAllowHeavyEffects(canRenderHeavyHero())
-
     if (typeof reducedMotionQuery.addEventListener === 'function') {
       reducedMotionQuery.addEventListener('change', handleMotionPrefChange)
       return () => reducedMotionQuery.removeEventListener('change', handleMotionPrefChange)
     }
-
     reducedMotionQuery.addListener(handleMotionPrefChange)
     return () => reducedMotionQuery.removeListener(handleMotionPrefChange)
   }, [])
@@ -34,7 +44,6 @@ export default function Hero() {
     let i = 0
     let timer
     let cancelled = false
-
     const tick = () => {
       if (cancelled) return
       setTypedRole(roleText.slice(0, i))
@@ -42,25 +51,29 @@ export default function Hero() {
         i += 1
         timer = setTimeout(tick, 85)
       } else {
-        timer = setTimeout(() => {
-          i = 0
-          tick()
-        }, 1400)
+        timer = setTimeout(() => { i = 0; tick() }, 1400)
       }
     }
-
     timer = setTimeout(tick, 400)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
+    return () => { cancelled = true; clearTimeout(timer) }
   }, [])
 
   return (
-    <section className="landing-section" id="landingDiv">
+    <section className="landing-section" id="landingDiv" ref={sectionRef}>
       {/* Background UnicornStudio animation */}
       {allowHeavyEffects ? (
-        <div id="unicorn-wrapper" className="hero-bg-layer">
+        <div
+          id="unicorn-wrapper"
+          className="hero-bg-layer"
+          style={{
+            // On mobile: freeze the wrapper position so address-bar resize
+            // events don't collapse the canvas. Visibility hides it cleanly
+            // once user scrolls past the hero.
+            visibility: unicornVisible ? 'visible' : 'hidden',
+            opacity: unicornVisible ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           <UnicornScene
             projectId="7bzzYJGvMvu0GRawnv9y"
             width="100%"
@@ -74,7 +87,7 @@ export default function Hero() {
         <div className="hero-fallback-bg hero-bg-layer" aria-hidden="true" />
       )}
 
-      {/* Background circles from the new design */}
+      {/* Background circles */}
       <div className="landing-circle1"></div>
       <div className="landing-circle2"></div>
       <div className="nav-fade" style={{ zIndex: 1 }}></div>

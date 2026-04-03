@@ -20,7 +20,6 @@ const INTERACT_DIST  = 4.5   // metres for E-key annotation
 const MOBILE_LOOK_SENSITIVITY = 0.0028
 const HUD_UPDATE_MS = 80
 const HUD_MOVE_EPSILON = 0.22
-const MOBILE_LOAD_RADIUS = ROOM_SPACING * 1.35
 
 const ROOM_LINKS = {
   armoury: 'billiards',
@@ -160,7 +159,7 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
     if (!scene) return
     const cached = HOTSPOT_CACHE.get(room.id)
     if (cached) {
-      setHotspots(isMobile ? cached.slice(0, 1) : cached.slice(0, 4))
+      setHotspots(isMobile ? cached.slice(0, 2) : cached.slice(0, 4))
       return
     }
     const spots = []
@@ -182,7 +181,7 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
       })
     })
     HOTSPOT_CACHE.set(room.id, spots)
-    setHotspots(isMobile ? spots.slice(0, 1) : spots)
+    setHotspots(isMobile ? spots.slice(0, 2) : spots)
   }, [scene, room, isMobile])
 
   return (

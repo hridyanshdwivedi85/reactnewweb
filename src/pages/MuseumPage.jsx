@@ -11,6 +11,7 @@ const BASE_URL       = `${import.meta.env.BASE_URL}assets/models/museum/`
 const ROOM_SPACING   = 48    // world units between room centres
 const ROOM_TARGET    = 42    // scale each room to this footprint
 const LOAD_RADIUS    = ROOM_SPACING * 2.2
+const MOBILE_LOAD_RADIUS = ROOM_SPACING * 1.35
 const EYE_HEIGHT     = 2.2
 const JUMP_IMPULSE   = 6.0
 const GRAVITY        = -18
@@ -1128,7 +1129,11 @@ export default function MuseumPage() {
           key={canvasVersion}
           shadows={!forceLite}
           dpr={forceLite ? [0.5, 0.85] : isMobile ? [0.65, 1.05] : [1, 1.5]}
-          gl={{ antialias: !(isMobile || forceLite), powerPreference: 'high-performance' }}
+          gl={{
+            antialias: !(isMobile || forceLite),
+            alpha: false,
+            powerPreference: forceLite ? 'low-power' : 'high-performance',
+          }}
           performance={{ min: 0.4 }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}
           onCreated={({ gl }) => {

@@ -254,8 +254,8 @@ img { max-width: 100%; }
   max-width: var(--cMaxWidth, 1920px);
   margin: auto;
   position: relative;
-  height: 100svh;
-  min-height: 100dvh;
+  height: 100vh;
+  min-height: 100vh;
   isolation: isolate;
 }
 

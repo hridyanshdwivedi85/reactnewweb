@@ -176,7 +176,6 @@ export default function LabsPage() {
   const [activeIdx, setActiveIdx] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const [isSmallMobile, setIsSmallMobile] = useState(false)
-  const [visualRotationY, setVisualRotationY] = useState(0)
   const infoRef = useRef(null)
   const dragRef = useRef({ active: false, x: 0, base: 0 })
 

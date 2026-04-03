@@ -1736,8 +1736,8 @@ h2.landing-info-h2 {
   }
   .hero-cmd-body { padding: 12px; }
   .hero-cmd-output {
-    font-size: clamp(0.95rem, 6vw, 1.35rem);
-    letter-spacing: 0.1em;
+    font-size: clamp(1rem, 6.2vw, 1.5rem);
+    letter-spacing: 0.04em;
   }
 }
 

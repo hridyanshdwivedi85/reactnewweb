@@ -259,6 +259,7 @@ img { max-width: 100%; }
   isolation: isolate;
   /* Clip particles & any overflow so nothing bleeds into sections below */
   overflow: hidden;
+  clip-path: inset(0); /* Safari fix for overflowing fixed/absolute webgl children */
 }
 
 .hero-bg-layer {
@@ -270,6 +271,9 @@ img { max-width: 100%; }
   will-change: transform;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  /* Stop the animation from 'leaking' beneath the stacked cards */
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
 }
 
 .landing-container {
@@ -426,6 +430,9 @@ img { max-width: 100%; }
   pointer-events: none;
   /* Clip particles to hero bounds */
   overflow: hidden;
+  /* Fade out particles matching the hero background mask */
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
 }
 .character-container * {
   pointer-events: auto;

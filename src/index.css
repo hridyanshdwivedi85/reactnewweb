@@ -51,6 +51,9 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
 }
+@media (max-width: 900px) {
+  body { animation: none; background-size: cover; }
+}
 
 @keyframes bgPulse {
   0% { background-position: 0% 50%; }
@@ -1374,6 +1377,19 @@ h2.landing-info-h2 {
 .br-price-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); }
 .br-price-val { font-family: var(--font-head); font-weight: 800; font-size: 1rem; color: #fff; }
 .br-product { width: 100%; height: 100%; }
+.br-nike-glow {
+  position: absolute;
+  inset: 8% 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, rgba(99,102,241,0.2) 38%, transparent 70%);
+  filter: blur(24px);
+  z-index: 26;
+  pointer-events: none;
+}
+.br-nike-shoe {
+  filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 50px rgba(99, 102, 241, 0.45)) saturate(1.2) contrast(1.12);
+  transform: scale(1.05);
+}
 .br-tech-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; border: 1px dashed rgba(255,255,255,0.15); transform: translate(-50%,-50%); width: 90%; height: 90%; z-index: 28; pointer-events: none; }
 .br-ring-inner { border: 2px solid rgba(255,255,255,0.1); width: 70%; height: 70%; z-index: 29; }
 .br-spin { animation: brSpin 18s linear infinite; }
@@ -1429,6 +1445,56 @@ h2.landing-info-h2 {
   .br-huge-title { font-size: clamp(2rem, 10vw, 3.5rem); }
   .br-arrows { bottom: 1rem; right: 1rem; }
   .br-dots { bottom: 1.2rem; }
+}
+
+@media (max-width: 900px) {
+  .brand-page-v2.mobile .br-slide-content {
+    top: 64px;
+  }
+  .brand-page-v2.mobile .br-text-block {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 1.1rem 1rem !important;
+    z-index: 40 !important;
+  }
+  .brand-page-v2.mobile .br-visual-block {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 34vh !important;
+    min-height: 220px;
+    max-height: 360px;
+    margin-top: 0.4rem;
+    z-index: 30 !important;
+  }
+  .brand-page-v2.mobile .br-huge-title {
+    font-size: clamp(1.8rem, 9vw, 3rem);
+    line-height: 0.95;
+  }
+  .brand-page-v2.mobile .br-sarcastic {
+    font-size: 0.74rem;
+    max-width: none;
+  }
+  .brand-page-v2.mobile .br-price-tag {
+    padding: 6px 14px;
+  }
+  .brand-page-v2.mobile .br-pulse-ring,
+  .brand-page-v2.mobile .br-tech-ring,
+  .brand-page-v2.mobile .br-ring-inner {
+    transform: translate(-50%, -50%) scale(0.7);
+  }
 }
 
 /* ─────────────────────────────────────────────────

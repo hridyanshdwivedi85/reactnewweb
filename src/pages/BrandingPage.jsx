@@ -86,7 +86,8 @@ function NikeSlide({ active }) {
       <div className="br-visual-block br-br">
         <div className="br-tech-ring br-spin" />
         <div className="br-tech-ring br-ring-inner br-spin-rev" />
-        <div className="br-product float-fast" style={{ backgroundImage: 'url(assets/images/fg_nike.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom', width: '100%', height: '100%', mixBlendMode: 'screen' }} />
+        <div className="br-nike-glow" />
+        <div className="br-product br-nike-shoe float-fast" style={{ backgroundImage: 'url(assets/images/fg_nike.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', width: '100%', height: '100%' }} />
       </div>
     </>
   )
@@ -360,6 +361,7 @@ const slideNames = ['NIKE', 'PS5', 'COLA', 'APPLE', 'ON', 'CETA', 'CARLS', 'BMW'
 export default function BrandingPage() {
   const [current, setCurrent] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const touchStart = useRef(null)
 
   const goTo = useCallback((i) => {
@@ -380,28 +382,50 @@ export default function BrandingPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [next, prev])
 
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 900)
+    onResize()
+    window.addEventListener('resize', onResize, { passive: true })
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const handleTouchStart = (e) => {
+    touchStart.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e) => {
+    if (touchStart.current == null) return
+    const delta = e.changedTouches[0].clientX - touchStart.current
+    if (Math.abs(delta) > 50) {
+      if (delta < 0) next()
+      else prev()
+    }
+    touchStart.current = null
+  }
+
   const s = slides[current]
   const SlideContent = slideComponents[current]
   const isLight = s.theme === 'light'
 
   return (
-    <div className="brand-page-v2" style={{ background: '#000' }}>
-      <FluidBackground baseColor={s.fluidColor} />
+    <div className={`brand-page-v2 ${isMobile ? 'mobile' : ''}`} style={{ background: '#000' }}>
+      <FluidBackground baseColor={s.fluidColor} lowPower={isMobile} />
       <Navbar />
 
       {/* Slide Content wrapped in an elegant glass card */}
-      <div className={`br-slide-content ${transitioning ? 'br-slide-out' : 'br-slide-in'}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+      <div className={`br-slide-content ${transitioning ? 'br-slide-out' : 'br-slide-in'}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
         <div className="br-ad-card" style={{
           position: 'relative',
-          width: '95vw',
-          height: '90vh',
-          background: 'rgba(10, 10, 15, 0.4)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: '24px',
+          width: isMobile ? '100vw' : '95vw',
+          height: isMobile ? 'calc(100vh - 64px)' : '90vh',
+          background: isMobile ? 'transparent' : 'rgba(10, 10, 15, 0.4)',
+          backdropFilter: isMobile ? 'none' : 'blur(24px)',
+          WebkitBackdropFilter: isMobile ? 'none' : 'blur(24px)',
+          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: isMobile ? '0' : '24px',
           overflow: 'hidden',
-          boxShadow: '0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+          boxShadow: isMobile ? 'none' : '0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
           display: 'flex'
         }}>
           <SlideContent active={!transitioning} />

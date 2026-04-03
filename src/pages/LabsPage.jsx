@@ -176,8 +176,6 @@ export default function LabsPage() {
   const [activeIdx, setActiveIdx] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const [isSmallMobile, setIsSmallMobile] = useState(false)
-  const [visualRotationY, setVisualRotationY] = useState(0)
-  const [isInfoCollapsed, setIsInfoCollapsed] = useState(false)
   const infoRef = useRef(null)
   const dragRef = useRef({ active: false, x: 0, base: 0 })
 
@@ -216,10 +214,8 @@ export default function LabsPage() {
 
   useEffect(() => {
     const syncViewport = () => {
-      const mobile = window.innerWidth <= 768
-      setIsMobile(mobile)
+      setIsMobile(window.innerWidth <= 768)
       setIsSmallMobile(window.innerWidth <= 480)
-      if (mobile) setIsInfoCollapsed(false)
     }
     syncViewport()
     window.addEventListener('resize', syncViewport, { passive: true })
@@ -286,54 +282,29 @@ export default function LabsPage() {
       </div>
 
       {/* ── INFORMATION PANEL (LEFT UI) ── */}
-      {!isMobile && (activeIdx !== 1 && activeIdx !== 4) && (
-        <button
-          onClick={() => setIsInfoCollapsed((prev) => !prev)}
-          style={{
-            position: 'absolute',
-            left: isInfoCollapsed ? '16px' : 'calc(5% + 340px)',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 12,
-            background: 'rgba(0,0,0,0.5)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'rgba(255,255,255,0.78)',
-            width: '32px',
-            height: '72px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            transition: 'left 0.35s ease',
-            letterSpacing: '1px'
-          }}
-          aria-label={isInfoCollapsed ? 'Show command panel' : 'Hide command panel'}
-        >
-          {isInfoCollapsed ? '›' : '‹'}
-        </button>
-      )}
-
       <div 
         ref={infoRef}
         style={{
           position: 'absolute',
           left: isMobile ? '0' : '5%',
           top: isMobile ? '76px' : '50%',
-          transform: isMobile ? 'none' : `translate(${isInfoCollapsed ? '-112%' : '0'}, -50%)`,
+          transform: isMobile ? 'none' : 'translateY(-50%)',
           width: '100%',
-          maxWidth: isMobile ? '100%' : '340px',
+          maxWidth: isMobile ? '100%' : '450px',
           zIndex: 10,
-          padding: isMobile ? '14px 16px 0' : '28px',
+          padding: isMobile ? '14px 16px 0' : '40px',
           opacity: (activeIdx === 1 || activeIdx === 4) ? 0 : 1, // Completely hide logic panel for Coffee & Entropy
-          pointerEvents: (activeIdx === 1 || activeIdx === 4 || (!isMobile && isInfoCollapsed)) ? 'none' : 'auto',
-          transition: 'opacity 0.5s ease, transform 0.35s ease'
+          pointerEvents: (activeIdx === 1 || activeIdx === 4) ? 'none' : 'auto',
+          transition: 'opacity 0.5s ease'
         }}
       >
         <p style={{ color: mod.color, letterSpacing: isMobile ? '2px' : '3px', fontSize: isMobile ? '9px' : '10px', textTransform: 'uppercase', fontWeight: 700, marginBottom: isMobile ? '10px' : '16px' }}>
           {mod.tag}
         </p>
-        <h1 style={{ color: '#fff', fontSize: isMobile ? 'clamp(1.4rem, 7vw, 2rem)' : 'clamp(2rem, 3.2vw, 2.9rem)', lineHeight: 1.1, margin: isMobile ? '0 0 12px' : '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800 }}>
+        <h1 style={{ color: '#fff', fontSize: isMobile ? 'clamp(1.4rem, 7vw, 2rem)' : 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, margin: isMobile ? '0 0 12px' : '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800 }}>
           {mod.name}
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isMobile ? '12px' : '14px', lineHeight: isMobile ? 1.45 : 1.7, marginBottom: isMobile ? '12px' : '32px', maxWidth: isMobile ? '95%' : '100%' }}>
+        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isMobile ? '12px' : '15px', lineHeight: isMobile ? 1.45 : 1.7, marginBottom: isMobile ? '12px' : '32px', maxWidth: isMobile ? '95%' : '100%' }}>
           {mod.desc}
         </p>
         

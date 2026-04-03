@@ -12,12 +12,40 @@ function canRenderHeavyHero() {
 
 export default function Hero() {
   const [allowHeavyEffects, setAllowHeavyEffects] = useState(canRenderHeavyHero)
+  const [typedRole, setTypedRole] = useState('')
+  const roleText = 'CEO && DEVELOPER'
 
   useEffect(() => {
     const update = () => setAllowHeavyEffects(canRenderHeavyHero())
     update()
     window.addEventListener('resize', update, { passive: true })
     return () => window.removeEventListener('resize', update)
+  }, [])
+
+  useEffect(() => {
+    let i = 0
+    let timer
+    let cancelled = false
+
+    const tick = () => {
+      if (cancelled) return
+      setTypedRole(roleText.slice(0, i))
+      if (i < roleText.length) {
+        i += 1
+        timer = setTimeout(tick, 85)
+      } else {
+        timer = setTimeout(() => {
+          i = 0
+          tick()
+        }, 1400)
+      }
+    }
+
+    timer = setTimeout(tick, 400)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [])
 
   return (
@@ -54,19 +82,18 @@ export default function Hero() {
         </div>
 
         <div className="landing-info">
-          <h3>CEO &</h3>
-          <h2 style={{ 
-            color: '#14b8a6', 
-            fontFamily: 'var(--font-head)', 
-            fontWeight: 800, 
-            margin: 0,
-            marginTop: '-5px',
-            fontSize: 'clamp(3rem, 5vw, 4.5rem)',
-            letterSpacing: '1px',
-            textTransform: 'uppercase'
-          }}>
-            DEVELOPER
-          </h2>
+          <div className="hero-cmd-box" aria-label="role terminal">
+            <div className="hero-cmd-head">
+              <span className="hero-dot hero-dot-close" />
+              <span className="hero-dot hero-dot-min" />
+              <span className="hero-dot hero-dot-max" />
+              <span className="hero-cmd-title">portfolio-terminal</span>
+            </div>
+            <div className="hero-cmd-body">
+              <p><span className="hero-prompt">$</span> whoami</p>
+              <p className="hero-cmd-output">{typedRole}<span className="hero-caret">▌</span></p>
+            </div>
+          </div>
         </div>
       </div>
 

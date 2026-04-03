@@ -82,7 +82,7 @@ export default function Hero() {
         </div>
 
         <div className="landing-info">
-          <div className="hero-cmd-box" aria-label="role terminal">
+          <div className="hero-cmd-box hero-cmd-box-mobile" aria-label="role terminal">
             <div className="hero-cmd-head">
               <span className="hero-dot hero-dot-close" />
               <span className="hero-dot hero-dot-min" />

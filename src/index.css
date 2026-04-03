@@ -1600,18 +1600,40 @@ h2.landing-info-h2 {
   }
   .brand-page-v2.mobile .br-coke-right {
     padding: 0 1rem 1.2rem;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
   }
   .brand-page-v2.mobile .br-coke-kicker {
     font-size: 0.52rem;
   }
   .brand-page-v2.mobile .br-coke-brand {
     margin-bottom: 10px;
+    font-size: 2.5rem;
+  }
+  .brand-page-v2.mobile .br-coke-mobile .br-coke-left {
+    height: 35vh;
+    width: 100%;
+  }
+  .brand-page-v2.mobile .br-coke-mobile .br-coke-can {
+    height: 85%;
   }
   .brand-page-v2.mobile .br-pulse-ring,
   .brand-page-v2.mobile .br-tech-ring,
   .brand-page-v2.mobile .br-ring-inner {
-    transform: translate(-50%, -50%) scale(0.7);
+    transform: translate(-50%, -50%) scale(0.6);
   }
+}
+
+/* GTA 6 Animations */
+@keyframes discSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes discGlowPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
 /* ─────────────────────────────────────────────────
@@ -1666,7 +1688,7 @@ h2.landing-info-h2 {
 }
 
 .hero-cmd-box {
-  width: min(520px, 90vw);
+  width: min(420px, 85vw);
   border-radius: 16px;
   border: 1px solid rgba(20, 184, 166, 0.35);
   background: linear-gradient(180deg, rgba(7, 16, 24, 0.92), rgba(6, 9, 16, 0.85));
@@ -1723,7 +1745,7 @@ h2.landing-info-h2 {
     bottom: 22px;
   }
   .hero-cmd-box {
-    width: min(88vw, 430px);
+    width: min(85vw, 380px);
   }
   .hero-cmd-head {
     padding: 8px 11px;
@@ -1733,7 +1755,7 @@ h2.landing-info-h2 {
   }
   .hero-cmd-body { padding: 12px; }
   .hero-cmd-output {
-    font-size: clamp(1rem, 6.2vw, 1.5rem);
+    font-size: clamp(0.9rem, 5.5vw, 1.35rem);
     letter-spacing: 0.04em;
   }
 }
@@ -1743,11 +1765,11 @@ h2.landing-info-h2 {
     bottom: 8px;
   }
   .hero-cmd-box {
-    width: min(86vw, 350px);
+    width: min(84vw, 310px);
   }
   .hero-cmd-body {
     padding: 10px;
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     line-height: 1.6;
   }
 }

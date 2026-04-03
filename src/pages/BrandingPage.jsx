@@ -117,9 +117,9 @@ function PS5Slide({ active }) {
   )
 }
 
-function CokeSlide({ active }) {
+function CokeSlide({ active, isMobile }) {
   return (
-    <div className="br-coke-layout">
+    <div className={`br-coke-layout ${isMobile ? 'br-coke-mobile' : ''}`}>
       <div className="br-coke-noise" />
       <div className="br-coke-left">
         <div className="br-coke-ice" />
@@ -128,13 +128,13 @@ function CokeSlide({ active }) {
       <div className="br-coke-right">
         <div className="br-coke-kicker">EST. 1886 · ORIGINAL TASTE</div>
         <div className="br-coke-brand">Coca-Cola</div>
-        <h2 className="br-huge-title" style={{ color: '#fff' }}>Open<br />Happiness.</h2>
-        <p className="br-sarcastic br-coke-copy">
+        <h2 className="br-huge-title" style={{ color: '#fff', fontSize: isMobile ? '2.5rem' : 'clamp(3rem, 6vw, 5rem)' }}>Open<br />Happiness.</h2>
+        <p className="br-sarcastic br-coke-copy" style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
           "Scientifically proven to make pizza taste 300% better."
         </p>
         <div className="br-coke-meta">
           <div className="br-price-tag br-coke-price">
-            <span className="br-price-val">12-PACK: $6.99</span>
+            <span className="br-price-val">{isMobile ? '$6.99' : '12-PACK: $6.99'}</span>
           </div>
           <span className="br-coke-chip">Zero Compromises</span>
         </div>
@@ -268,77 +268,100 @@ function BMWSlide({ active }) {
   )
 }
 
-function XboxSlide({ active }) {
+function XboxSlide({ active, isMobile }) {
   return (
-    <>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: isMobile ? 'flex-end' : 'center', padding: isMobile ? '80px 20px 40px' : '0 5%' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(to bottom, transparent 0px, transparent 5px, rgba(16,124,16,0.02) 5px, rgba(16,124,16,0.02) 6px)', zIndex: 11, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '50%', left: '75%', transform: 'translate(-50%,-50%)', width: '60vw', height: '60vw', maxWidth: '700px', maxHeight: '700px', background: 'radial-gradient(circle, rgba(16,124,16,0.28) 0%, transparent 65%)', zIndex: 12, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', width: '80px', height: '80px', borderTop: '2px solid rgba(16,180,16,0.5)', borderLeft: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
-      <div style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', width: '80px', height: '80px', borderBottom: '2px solid rgba(16,180,16,0.5)', borderRight: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
-      <div id="xbox-text-block" className="br-text-block" style={{ position: 'absolute', top: '50%', left: '8%', transform: 'translateY(-50%)', zIndex: 40, maxWidth: '44vw' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+      <div style={{ position: 'absolute', top: isMobile ? '70%' : '50%', left: isMobile ? '50%' : '75%', transform: 'translate(-50%,-50%)', width: isMobile ? '80vw' : '60vw', height: isMobile ? '80vw' : '60vw', maxWidth: '700px', maxHeight: '700px', background: 'radial-gradient(circle, rgba(16,124,16,0.28) 0%, transparent 65%)', zIndex: 12, pointerEvents: 'none' }} />
+      
+      {!isMobile && (
+        <>
+          <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', width: '80px', height: '80px', borderTop: '2px solid rgba(16,180,16,0.5)', borderLeft: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
+          <div style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', width: '80px', height: '80px', borderBottom: '2px solid rgba(16,180,16,0.5)', borderRight: '2px solid rgba(16,180,16,0.5)', zIndex: 15 }} />
+        </>
+      )}
+
+      <div id="xbox-text-block" className="br-text-block" style={{ position: isMobile ? 'static' : 'absolute', top: '50%', left: '8%', transform: isMobile ? 'none' : 'translateY(-50%)', zIndex: 40, maxWidth: isMobile ? '100%' : '44vw', textAlign: isMobile ? 'center' : 'left', marginBottom: isMobile ? '20px' : '0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
           <svg width="44" height="44" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#107C10"/><line x1="22" y1="22" x2="78" y2="78" stroke="white" strokeWidth="11" strokeLinecap="round"/><line x1="78" y1="22" x2="22" y2="78" stroke="white" strokeWidth="11" strokeLinecap="round"/></svg>
           <div>
             <div style={{ fontFamily: 'Space Grotesk', color: '#fff', fontSize: '1.4rem', fontWeight: 700 }}>Xbox</div>
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.6rem', letterSpacing: '0.25em', color: '#52d152' }}>SERIES X</div>
           </div>
         </div>
-        <h2 style={{ fontFamily: 'Space Grotesk', fontSize: 'clamp(2rem,3.8vw,3.5rem)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.03em', color: '#fff', textShadow: '0 0 40px rgba(16,180,16,0.3)', marginBottom: '16px' }}>
+        <h2 style={{ fontFamily: 'Space Grotesk', fontSize: isMobile ? '2.2rem' : 'clamp(2rem,3.8vw,3.5rem)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.03em', color: '#fff', textShadow: '0 0 40px rgba(16,180,16,0.3)', marginBottom: '16px' }}>
           Next Gen.<br />Next Level.<br /><span style={{ background: 'linear-gradient(135deg,#52d152,#107C10)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No Excuses.</span>
         </h2>
-        <div style={{ fontFamily: 'JetBrains Mono', fontSize: 'clamp(0.6rem,0.95vw,0.75rem)', color: 'rgba(82,209,82,0.85)', background: 'rgba(16,124,16,0.08)', border: '1px solid rgba(16,180,16,0.2)', borderLeft: '3px solid #52d152', borderRadius: '4px', padding: '10px 16px', marginBottom: '20px', lineHeight: 1.65 }}>
+        <div style={{ fontFamily: 'JetBrains Mono', fontSize: isMobile ? '0.65rem' : 'clamp(0.6rem,0.95vw,0.75rem)', color: 'rgba(82,209,82,0.85)', background: 'rgba(16,124,16,0.08)', border: '1px solid rgba(16,180,16,0.2)', borderLeft: '3px solid #52d152', borderRadius: '4px', padding: '10px 16px', marginBottom: '20px', lineHeight: 1.65, maxWidth: isMobile ? '90%' : '100%', margin: isMobile ? '0 auto 20px' : '0 0 20px' }}>
           // "12 teraflops. Your GPU is crying.<br />Your wallet is already in therapy."
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
-          {['12 TERAFLOPS GPU · RDNA 2', '1TB NVME SSD · ZERO LOAD SCREENS', '4K 120FPS · DOLBY VISION', 'QUICK RESUME · 6 GAMES'].map(s => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'JetBrains Mono', fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.08em' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#52d152', boxShadow: '0 0 6px #52d152', flexShrink: 0 }} />
-              {s}
-            </div>
-          ))}
-        </div>
+        {!isMobile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '20px' }}>
+            {['12 TERAFLOPS GPU · RDNA 2', '1TB NVME SSD · ZERO LOAD SCREENS', '4K 120FPS · DOLBY VISION', 'QUICK RESUME · 6 GAMES'].map(s => (
+              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'JetBrains Mono', fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.08em' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#52d152', boxShadow: '0 0 6px #52d152', flexShrink: 0 }} />
+                {s}
+              </div>
+            ))}
+          </div>
+        )}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'rgba(16,124,16,0.15)', border: '1px solid rgba(16,180,16,0.3)', borderRadius: '999px', padding: '8px 22px' }}>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#52d152' }}>STARTING AT</span>
           <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '1.3rem', color: '#fff' }}>$499.99</span>
         </div>
       </div>
-      <div className="br-visual-block" style={{ position: 'absolute', top: '50%', left: '75%', transform: 'translate(-50%,-50%)', width: '42vw', height: '80vh', zIndex: 30 }}>
-        <div className="br-pulse-ring br-pulse" style={{ borderColor: 'rgba(16,180,16,0.3)' }} />
-        <img src="assets/images/xbox_real.png" className="float-vertical" alt="Xbox Series X" style={{ width: '100%', height: '85%', objectFit: 'contain', filter: 'drop-shadow(0 0 60px rgba(16,180,16,0.35))' }} />
+      <div className="br-visual-block" style={{ position: isMobile ? 'relative' : 'absolute', top: isMobile ? 'auto' : '50%', left: isMobile ? 'auto' : '75%', transform: isMobile ? 'none' : 'translate(-50%,-50%)', width: isMobile ? '70vw' : '42vw', height: isMobile ? '40vh' : '80vh', zIndex: 30, marginTop: isMobile ? '20px' : '0' }}>
+        <div className="br-pulse-ring br-pulse" style={{ borderColor: 'rgba(16,180,16,0.3)', display: isMobile ? 'none' : 'block' }} />
+        <img src="assets/images/xbox_real.png" className="float-vertical" alt="Xbox Series X" style={{ width: '100%', height: isMobile ? '100%' : '85%', objectFit: 'contain', filter: 'drop-shadow(0 0 60px rgba(16,180,16,0.35))' }} />
       </div>
-    </>
+    </div>
   )
 }
 
-function GTA6Slide({ active }) {
+function GTA6Slide({ active, isMobile }) {
   return (
-    <>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(6,6,10,0.75) 0%, rgba(6,6,10,0.2) 40%, rgba(6,6,10,0.5) 70%, rgba(6,6,10,0.92) 100%)', zIndex: 11, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to right, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to left, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
+      {!isMobile && (
+        <>
+          <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to right, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '22vw', background: 'linear-gradient(to left, rgba(6,6,10,0.9), transparent)', zIndex: 12, pointerEvents: 'none' }} />
+        </>
+      )}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, transparent, #FF6E1E, #FF3E8A, #FF6E1E, transparent)', zIndex: 60 }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, transparent, #FF6E1E, #FF3E8A, #FF6E1E, transparent)', zIndex: 60 }} />
-      <div style={{ position: 'absolute', bottom: '-10%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '40vh', background: 'radial-gradient(ellipse, rgba(255,110,30,0.18) 0%, transparent 70%)', zIndex: 14, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: isMobile ? '20%' : '-10%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '40vh', background: 'radial-gradient(ellipse, rgba(255,110,30,0.18) 0%, transparent 70%)', zIndex: 14, pointerEvents: 'none' }} />
 
-      <div style={{ position: 'absolute', inset: 0, zIndex: 40, display: 'flex', alignItems: 'center', padding: '0 5%', gap: '2vw' }}>
-        {/* Text LEFT */}
-        <div style={{ flex: 1 }}>
-          <div style={{ background: 'rgba(6,6,10,0.55)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,110,30,0.12)', borderRadius: '12px', padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ 
+        position: isMobile ? 'relative' : 'absolute', 
+        inset: isMobile ? 'auto' : 0, 
+        zIndex: 40, 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: 'center', 
+        padding: isMobile ? '80px 24px 24px' : '0 5%', 
+        gap: isMobile ? '2rem' : '2vw',
+        width: '100%',
+        height: '100%'
+      }}>
+        {/* Text Area */}
+        <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
+          <div style={{ background: 'rgba(6,6,10,0.55)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,110,30,0.12)', borderRadius: '12px', padding: isMobile ? '20px' : '28px 32px', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left' }}>
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.65rem', letterSpacing: '0.45em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>▸ ROCKSTAR GAMES PRESENTS</div>
-            <img src="assets/images/gta6.png" alt="GTA VI" style={{ width: 'auto', maxWidth: '100%', height: 'clamp(60px,10vw,120px)', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(255,110,30,0.5))' }} onError={e => e.target.style.display='none'} />
+            <img src="assets/images/gta6.png" alt="GTA VI" style={{ width: 'auto', maxWidth: '100%', height: isMobile ? '60px' : 'clamp(60px,10vw,120px)', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(255,110,30,0.5))' }} onError={e => e.target.style.display='none'} />
             <div style={{ fontFamily: 'JetBrains Mono', fontSize: 'clamp(0.55rem,0.85vw,0.72rem)', letterSpacing: '0.45em', color: 'rgba(255,80,30,0.95)', textTransform: 'uppercase' }}>◈  COMING 2025  ◈</div>
-            <div style={{ fontFamily: 'JetBrains Mono', fontSize: 'clamp(0.6rem,0.95vw,0.75rem)', color: 'rgba(255,140,80,0.9)', lineHeight: 1.65 }}>
+            <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: 'rgba(255,140,80,0.9)', lineHeight: 1.65 }}>
               // "Finally — a game that lets you simulate crime,<br />traffic jams & moral bankruptcy at 60fps."
             </div>
             <button style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'linear-gradient(135deg, #FF6E1E, #FF3E8A)', color: '#fff', fontFamily: 'Space Grotesk', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '13px 32px', borderRadius: '4px', border: 'none', cursor: 'pointer', boxShadow: '0 0 25px rgba(255,110,30,0.4)', width: 'fit-content' }}>
-              🎮 Pre-Book Now
+              🎮 Pre-Book
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-              {[{ n: '170M+', l: 'GTA V Sold' }, { n: '$2B+', l: 'Day-1 Target' }, { n: '∞', l: 'Chaos Index' }].map((s, i) => (
-                <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {i > 0 && <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.12)' }} />}
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.8rem' : '1.2rem', justifyContent: 'center' }}>
+              {[{ n: '170M+', l: 'Sold' }, { n: '$2B+', l: 'Day-1' }, { n: '∞', l: 'Chaos' }].map((s, i) => (
+                <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
+                  {i > 0 && <div style={{ width: '1px', height: isMobile ? '24px' : '36px', background: 'rgba(255,255,255,0.12)' }} />}
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: 'Space Grotesk', fontSize: '1.4rem', fontWeight: 700, color: '#FF6E1E' }}>{s.n}</span>
+                    <span style={{ fontFamily: 'Space Grotesk', fontSize: isMobile ? '1.1rem' : '1.4rem', fontWeight: 700, color: '#FF6E1E' }}>{s.n}</span>
                     <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.45rem', letterSpacing: '0.18em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>{s.l}</span>
                   </div>
                 </div>
@@ -347,16 +370,16 @@ function GTA6Slide({ active }) {
           </div>
         </div>
 
-        {/* CD RIGHT */}
-        <div style={{ flex: '0 0 auto', width: '42vw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
-          <div style={{ position: 'relative', width: 'clamp(180px,28vw,360px)', height: 'clamp(180px,28vw,360px)' }}>
+        {/* CD Area */}
+        <div style={{ flex: '0 0 auto', width: isMobile ? '60vw' : '42vw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ position: 'relative', width: isMobile ? '180px' : 'clamp(180px,28vw,360px)', height: isMobile ? '180px' : 'clamp(180px,28vw,360px)' }}>
             <div style={{ position: 'absolute', inset: '-15%', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(255,110,30,0.15) 0%, transparent 65%)', animation: 'discGlowPulse 3s ease-in-out infinite', pointerEvents: 'none' }} />
-            <img src="assets/images/cd.png" alt="GTA 6 Disc" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', animation: 'discSpin 7s linear infinite', filter: 'drop-shadow(0 0 30px rgba(255,110,30,0.55)) drop-shadow(0 0 60px rgba(255,60,130,0.25))', position: 'relative', zIndex: 2 }} onError={e => e.target.style.display='none'} />
+            <img src="assets/images/cd.png" alt="GTA 6 Disc" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', animation: 'discSpin 10s linear infinite', filter: 'drop-shadow(0 0 30px rgba(255,110,30,0.55)) drop-shadow(0 0 60px rgba(255,60,130,0.25))', position: 'relative', zIndex: 2 }} onError={e => e.target.style.display='none'} />
           </div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.55rem', letterSpacing: '0.35em', color: 'rgba(255,80,30,0.95)', textTransform: 'uppercase' }}>▶  PHYSICAL EDITION INCLUDED  ◀</div>
+          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.5rem', letterSpacing: '0.35em', color: 'rgba(255,80,30,0.95)', textTransform: 'uppercase' }}>▶ PHYSICAL EDITION ◀</div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -433,7 +456,7 @@ export default function BrandingPage() {
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row'
         }}>
-          <SlideContent active={!transitioning} />
+          <SlideContent active={!transitioning} isMobile={isMobile} />
         </div>
       </div>
 

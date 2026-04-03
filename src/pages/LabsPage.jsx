@@ -147,7 +147,7 @@ function SpatialAudioVisualizer({ active }) {
 }
 
 /* ── MAIN SCENE CONTROLLER ── */
-function LabScene({ activeIdx }) {
+function LabScene({ activeIdx, isMobile, groupRef }) {
   // Only render 3D elements for Neural (0), Compiler (2), Audio (3)
   if (activeIdx === 1 || activeIdx === 4) return null;
 
@@ -160,13 +160,13 @@ function LabScene({ activeIdx }) {
       {/* Background stars for a deep space aesthetic */}
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       
-      <group position={[3, 0, 0]}>
+      <group ref={groupRef} position={isMobile ? [0, -1.8, 0] : [3, 0, 0]} scale={isMobile ? 0.8 : 1}>
         {activeIdx === 0 && <NeuralVisualizer active={true} />}
         {activeIdx === 2 && <CompilerVisualizer active={true} />}
         {activeIdx === 3 && <SpatialAudioVisualizer active={true} />}
       </group>
 
-      <ContactShadows position={[3, -3, 0]} opacity={0.4} scale={20} blur={2} far={4} color="#000000" />
+      <ContactShadows position={isMobile ? [0, -4, 0] : [3, -3, 0]} opacity={0.4} scale={20} blur={2} far={4} color="#000000" />
     </>
   )
 }
@@ -221,24 +221,71 @@ export default function LabsPage() {
     return () => window.removeEventListener('resize', syncViewport)
   }, [])
 
-  const mod = MODULES[activeIdx]
+  const modelGroupRef = useRef()
+  const [rotation, setRotation] = useState([0, 0, 0])
+
+  // Custom rotation logic to rotate model instead of camera
+  useEffect(() => {
+    if (!isMobile) return
+    let isDragging = false
+    let prevX = 0
+    let prevY = 0
+
+    const onStart = (e) => {
+      isDragging = true
+      prevX = e.touches ? e.touches[0].clientX : e.clientX
+      prevY = e.touches ? e.touches[0].clientY : e.clientY
+    }
+    const onMove = (e) => {
+      if (!isDragging || !modelGroupRef.current) return
+      const x = e.touches ? e.touches[0].clientX : e.clientX
+      const y = e.touches ? e.touches[0].clientY : e.clientY
+      const dx = x - prevX
+      const dy = y - prevY
+      
+      modelGroupRef.current.rotation.y += dx * 0.01
+      modelGroupRef.current.rotation.x += dy * 0.01
+      
+      prevX = x
+      prevY = y
+    }
+    const onEnd = () => { isDragging = false }
+
+    window.addEventListener('mousedown', onStart)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    window.addEventListener('touchstart', onStart)
+    window.addEventListener('touchmove', onMove)
+    window.addEventListener('touchend', onEnd)
+
+    return () => {
+      window.removeEventListener('mousedown', onStart)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+      window.removeEventListener('touchstart', onStart)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+    }
+  }, [isMobile])
 
   return (
     <div className="labs-slider-page" style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: '#05050d', overflow: 'hidden' }}>
       
       {/* ── THREE.JS CANVAS (OUTPUT) ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, transition: 'opacity 0.6s', opacity: [0, 2, 3].includes(activeIdx) ? 1 : 0 }}>
-        <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
-          <LabScene activeIdx={activeIdx} />
+        <Canvas camera={{ position: [0, 0, isMobile ? 12 : 8], fov: isMobile ? 50 : 45 }}>
+          <LabScene activeIdx={activeIdx} isMobile={isMobile} groupRef={modelGroupRef} />
           {/* Subtle slow pan */}
-          <OrbitControls 
-            enableZoom={false} 
-            enablePan={false}
-            autoRotate={true}
-            autoRotateSpeed={0.5}
-            minPolarAngle={Math.PI / 2.5}
-            maxPolarAngle={Math.PI / 1.5}
-          />
+          {!isMobile && (
+            <OrbitControls 
+              enableZoom={false} 
+              enablePan={false}
+              autoRotate={true}
+              autoRotateSpeed={0.5}
+              minPolarAngle={Math.PI / 2.5}
+              maxPolarAngle={Math.PI / 1.5}
+            />
+          )}
         </Canvas>
       </div>
 
@@ -271,28 +318,29 @@ export default function LabsPage() {
         style={{
           position: 'absolute',
           left: isMobile ? '0' : '5%',
-          top: isMobile ? '76px' : '50%',
+          top: isMobile ? '70px' : '50%',
           transform: isMobile ? 'none' : 'translateY(-50%)',
           width: '100%',
           maxWidth: isMobile ? '100%' : '450px',
           zIndex: 10,
-          padding: isMobile ? '14px 16px 0' : '40px',
+          padding: isMobile ? '20px 24px 0' : '40px',
           opacity: (activeIdx === 1 || activeIdx === 4) ? 0 : 1, // Completely hide logic panel for Coffee & Entropy
           pointerEvents: (activeIdx === 1 || activeIdx === 4) ? 'none' : 'auto',
-          transition: 'opacity 0.5s ease'
+          transition: 'opacity 0.5s ease',
+          textAlign: isMobile ? 'center' : 'left'
         }}
       >
-        <p style={{ color: mod.color, letterSpacing: isMobile ? '2px' : '3px', fontSize: isMobile ? '9px' : '10px', textTransform: 'uppercase', fontWeight: 700, marginBottom: isMobile ? '10px' : '16px' }}>
+        <p style={{ color: mod.color, letterSpacing: isMobile ? '2px' : '3px', fontSize: isMobile ? '10px' : '10px', textTransform: 'uppercase', fontWeight: 700, marginBottom: isMobile ? '8px' : '16px' }}>
           {mod.tag}
         </p>
-        <h1 style={{ color: '#fff', fontSize: isMobile ? 'clamp(1.4rem, 7vw, 2rem)' : 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, margin: isMobile ? '0 0 12px' : '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800 }}>
+        <h1 style={{ color: '#fff', fontSize: isMobile ? 'clamp(1.6rem, 8vw, 2.4rem)' : 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1.1, margin: isMobile ? '0 auto 16px' : '0 0 24px', letterSpacing: '-1px', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 800, maxWidth: isMobile ? '90%' : '100%' }}>
           {mod.name}
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isMobile ? '12px' : '15px', lineHeight: isMobile ? 1.45 : 1.7, marginBottom: isMobile ? '12px' : '32px', maxWidth: isMobile ? '95%' : '100%' }}>
+        <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: isMobile ? '13px' : '15px', lineHeight: isMobile ? 1.5 : 1.7, marginBottom: isMobile ? '20px' : '32px', maxWidth: isMobile ? '90%' : '100%', margin: isMobile ? '0 auto 20px' : '0 0 32px' }}>
           {mod.desc}
         </p>
         
-        <div style={{ display: 'flex', gap: isMobile ? '6px' : '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '8px' : '10px', flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
           {mod.tech.map((t, idx) => (
             <span key={idx} style={{ padding: isMobile ? '4px 8px' : '6px 12px', border: `1px solid ${mod.color}40`, borderRadius: '4px', fontSize: isMobile ? '9px' : '11px', color: mod.color, textTransform: 'uppercase', letterSpacing: '1px' }}>
               {t}

@@ -266,12 +266,18 @@ img { max-width: 100%; }
   pointer-events: none;
 }
 
+.hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .landing-container {
   width: var(--cWidth, 100%);
   margin: auto;
   height: 100%;
-  position: absolute;
-  inset: 0;
+  position: relative;
   z-index: 10;
   max-width: var(--cMaxWidth, 1920px);
 }
@@ -1748,8 +1754,8 @@ h2.landing-info-h2 {
 
 @media (max-width: 900px) {
   .hero-bg-layer {
-    position: sticky;
-    top: 0;
+    position: fixed;
+    inset: 0;
     height: 100dvh;
   }
 }

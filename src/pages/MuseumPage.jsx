@@ -977,13 +977,8 @@ export default function MuseumPage() {
   const [loaded,           setLoaded]            = useState(false)
   const [annotationRoom,   setAnnotationRoom]    = useState(null)
   const [nearAnnotation,   setNearAnnotation]    = useState(false)
-  const [isMobile,         setIsMobile]          = useState(() => (
-    typeof window !== 'undefined'
-      ? (window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900)
-      : false
-  ))
+  const [isMobile,         setIsMobile]          = useState(false)
   const [gateOpen,         setGateOpen]          = useState(false)
-  const [webglFailed,      setWebglFailed]       = useState(false)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
   const teleportRef = useRef(null)
@@ -998,13 +993,6 @@ export default function MuseumPage() {
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
-  }, [])
-
-  useEffect(() => {
-    collisionMeshes.length = 0
-    return () => {
-      collisionMeshes.length = 0
-    }
   }, [])
 
   const handleTeleport = useCallback((room) => {
@@ -1102,7 +1090,7 @@ export default function MuseumPage() {
         onTouchEnd={handleTouchLookEnd}
       >
         <Canvas
-          shadows={!isMobile}
+          shadows
           dpr={isMobile ? [0.65, 1.05] : [1, 1.5]}
           gl={{ antialias: !isMobile, powerPreference: 'high-performance' }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}

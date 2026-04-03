@@ -75,8 +75,6 @@ const MUSEUM_ROOMS = [
     desc: 'The grand upper landing connecting the main staircase to the private apartments on the first floor.' },
 ]
 
-MUSEUM_ROOMS.forEach(r => useGLTF.preload(BASE_URL + r.file))
-
 function roomWorldPos(room) { return { x: room.col * ROOM_SPACING, z: room.row * ROOM_SPACING } }
 
 function nearestRoom(x, z) {
@@ -249,8 +247,9 @@ function RoomAnnotations({ room, playerPos, isMobile }) {
 ═══════════════════════════════════════════════════════════ */
 function ProximityRoom({ room, playerCoarse, playerPos, isMobile }) {
   const p = roomWorldPos(room)
+  const effectiveLoadRadius = isMobile ? MOBILE_LOAD_RADIUS : LOAD_RADIUS
   const dist = Math.hypot(playerCoarse.x - p.x, playerCoarse.z - p.z)
-  if (dist > LOAD_RADIUS) return null
+  if (dist > effectiveLoadRadius) return null
   return (
     <Suspense fallback={null}>
       <RoomModel room={room} />
@@ -995,8 +994,11 @@ export default function MuseumPage() {
   const [annotationRoom,   setAnnotationRoom]    = useState(null)
   const [nearAnnotation,   setNearAnnotation]    = useState(false)
   const [isMobile,         setIsMobile]          = useState(false)
+  const [isIOS,            setIsIOS]             = useState(false)
   const [gateOpen,         setGateOpen]          = useState(false)
   const [webglFailed,      setWebglFailed]       = useState(false)
+  const [forceLite,        setForceLite]         = useState(false)
+  const [canvasVersion,    setCanvasVersion]     = useState(0)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
   const lastHudRef = useRef({ t: 0, x: 0, z: ROOM_SPACING * 0.3 })
@@ -1012,6 +1014,13 @@ export default function MuseumPage() {
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    const ua = navigator.userAgent || ''
+    const iosDetected = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    setIsIOS(iosDetected)
+    if (iosDetected) setForceLite(true)
   }, [])
 
   const handleTeleport = useCallback((room) => {
@@ -1116,9 +1125,11 @@ export default function MuseumPage() {
         onTouchEnd={handleTouchLookEnd}
       >
         <Canvas
-          shadows
-          dpr={isMobile ? [0.65, 1.05] : [1, 1.5]}
-          gl={{ antialias: !isMobile, powerPreference: 'high-performance' }}
+          key={canvasVersion}
+          shadows={!forceLite}
+          dpr={forceLite ? [0.5, 0.85] : isMobile ? [0.65, 1.05] : [1, 1.5]}
+          gl={{ antialias: !(isMobile || forceLite), powerPreference: 'high-performance' }}
+          performance={{ min: 0.4 }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}
           onCreated={({ gl }) => {
             const canvas = gl.domElement
@@ -1146,7 +1157,7 @@ export default function MuseumPage() {
               onInteractKey={handleInteractKey}
               teleportRef={teleportRef}
               touchInputRef={touchInputRef}
-              isMobile={isMobile}
+              isMobile={isMobile || forceLite}
             />
           </Suspense>
         </Canvas>
@@ -1162,7 +1173,43 @@ export default function MuseumPage() {
         }}>
           <div>
             <div style={{ fontSize: 18, color: '#f97316', marginBottom: 10 }}>Graphics reset detected</div>
-            <div style={{ fontSize: 12, color: '#aaa' }}>Please reopen the page. Mobile quality has been reduced to prevent this.</div>
+            <div style={{ fontSize: 12, color: '#aaa', marginBottom: 14 }}>
+              iPhone/Safari memory pressure can reset WebGL. Continue in Lite mode for stable FPS.
+            </div>
+            <button onClick={() => {
+              setForceLite(true)
+              setWebglFailed(false)
+              setCanvasVersion(v => v + 1)
+            }} style={{
+              background: 'rgba(249,115,22,0.15)',
+              border: '1px solid rgba(249,115,22,0.5)',
+              color: '#f97316',
+              borderRadius: 8,
+              padding: '10px 16px',
+              fontFamily: 'JetBrains Mono',
+              fontSize: 11,
+              cursor: 'pointer'
+            }}>
+              Continue in Lite Mode
+            </button>
+            {!isIOS && (
+              <button onClick={() => {
+                setWebglFailed(false)
+                setCanvasVersion(v => v + 1)
+              }} style={{
+                marginLeft: 10,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: '#ddd',
+                borderRadius: 8,
+                padding: '10px 16px',
+                fontFamily: 'JetBrains Mono',
+                fontSize: 11,
+                cursor: 'pointer'
+              }}>
+                Retry current quality
+              </button>
+            )}
           </div>
         </div>
       )}

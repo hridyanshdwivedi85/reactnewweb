@@ -78,45 +78,32 @@ export default function Work() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {projects.map((p, i) => (
+          {projects.map((p) => (
             <a
               key={p.number}
+              className="work-list-item"
               href={p.href || p.route || '#'}
               target={p.external ? '_blank' : '_self'}
               rel="noreferrer"
               onClick={(e) => handleClick(p, e)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '24px',
-                padding: '28px 24px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-card)',
-                textDecoration: 'none',
-                color: 'inherit',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = p.accent + '55'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.background = 'var(--bg-elevated)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = 'var(--bg-card)' }}
+              style={{ '--project-accent': p.accent }}
             >
               {/* Number */}
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', letterSpacing: '0.1em', minWidth: '24px' }}>{p.number}</span>
+              <span className="work-list-number">{p.number}</span>
 
               {/* Info */}
-              <div style={{ flex: 1 }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: p.accent, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>{p.category}</p>
-                <h3 style={{ fontFamily: 'var(--font-head)', fontSize: '1.15rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '6px' }}>{p.title}</h3>
-                <p style={{ fontSize: '0.83rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>{p.desc}</p>
+              <div className="work-list-content">
+                <p className="work-list-category">{p.category}</p>
+                <h3 className="work-list-title">{p.title}</h3>
+                <p className="work-list-desc">{p.desc}</p>
               </div>
 
               {/* Stack + Arrow */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px', flexShrink: 0 }}>
-                <span style={{ fontSize: '1.2rem', color: p.accent, opacity: 0.7 }}>↗</span>
-                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '200px' }}>
+              <div className="work-list-meta">
+                <span className="work-list-arrow">↗</span>
+                <div className="work-list-stack">
                   {p.stack.map(s => (
-                    <span key={s} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', padding: '3px 7px', borderRadius: '4px', color: p.accent, background: `${p.accent}10`, border: `1px solid ${p.accent}25`, letterSpacing: '0.06em' }}>{s}</span>
+                    <span key={s} className="work-list-tag">{s}</span>
                   ))}
                 </div>
               </div>

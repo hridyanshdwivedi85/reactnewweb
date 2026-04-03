@@ -155,6 +155,7 @@ export default function CharacterScene() {
   const mixerRef     = useRef(null)
   const actionsRef   = useRef({})
   const currentActionRef = useRef(null)
+  const visibleRef = useRef(true)
 
   const [activeAnim, setActiveAnim] = useState(null)
   const [animNames,  setAnimNames]  = useState([])
@@ -174,6 +175,13 @@ export default function CharacterScene() {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        visibleRef.current = entry.isIntersecting
+      },
+      { threshold: 0.05 }
+    )
+    visibilityObserver.observe(container)
 
     const rect = container.getBoundingClientRect()
     let W = rect.width  || window.innerWidth
@@ -298,22 +306,22 @@ export default function CharacterScene() {
       const delta = clock.getDelta()
       bobTime += delta
 
-      if (robotModel && modelLoaded) {
+      if (robotModel && modelLoaded && visibleRef.current && !document.hidden) {
         // Gentle levitation bob
         robotModel.position.y += Math.sin(bobTime * 1.2) * 0.0005
         // Slow idle sway
         robotModel.rotation.y  = Math.sin(bobTime * 0.3) * 0.025
         // Cursor tracking
         handleTargetTracking(robotModel, headBone, mouse.x, mouse.y, interp.x, interp.y)
+        if (mixerRef.current) mixerRef.current.update(delta)
       }
-
-      if (mixerRef.current) mixerRef.current.update(delta)
       renderer.render(scene, camera)
     }
     animate()
 
     return () => {
       cancelAnimationFrame(rafRef.current)
+      visibilityObserver.disconnect()
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('mousemove', onMouseMove)
       scene.clear()

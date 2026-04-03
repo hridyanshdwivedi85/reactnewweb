@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useCallback, Suspense, useMemo } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { Link } from 'react-router-dom'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useGLTF, useProgress, PointerLockControls, Environment, useAnimations, Html } from '@react-three/drei'
+import { useGLTF, useProgress, PointerLockControls, Environment, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 /* ═══════════════════════════════════════════════════════════
@@ -688,6 +688,12 @@ function Instructions({ onDismiss }) {
 ═══════════════════════════════════════════════════════════ */
 function AnnotationPanel({ room, linkedRoom, onClose, onGoLinkedRoom }) {
   if (!room) return null
+  const handleLinkedRoomClick = () => {
+    if (linkedRoom) {
+      onGoLinkedRoom?.(linkedRoom)
+      onClose?.()
+    }
+  }
   return (
     <div style={{
       position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
@@ -697,12 +703,14 @@ function AnnotationPanel({ room, linkedRoom, onClose, onGoLinkedRoom }) {
       padding: '28px 32px', fontFamily: 'JetBrains Mono', color: '#fff',
       boxShadow: `0 0 60px ${room.color}22`,
       animation: 'fadeUp .3s ease',
+      maxHeight: '85vh',
+      overflowY: 'auto',
     }}>
       <style>{`@keyframes fadeUp { from{opacity:0;transform:translate(-50%,-48%)} to{opacity:1;transform:translate(-50%,-50%)} }`}</style>
       <div style={{ fontSize: 9, color: room.color, letterSpacing: 4, marginBottom: 6 }}>EXHIBIT INFO</div>
       <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10, letterSpacing: 1 }}>{room.name}</div>
       <div style={{ fontSize: 11, color: '#888', lineHeight: 1.8, marginBottom: 20 }}>{room.desc}</div>
-      <div style={{ display: 'flex', gap: 8, fontSize: 8, color: '#444', marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 8, fontSize: 8, color: '#444', marginBottom: 16, flexWrap: 'wrap' }}>
         <span style={{ background: `${room.color}15`, border: `1px solid ${room.color}30`, borderRadius: 4, padding: '3px 8px', color: room.color }}>🏛 Hallwyl Museum</span>
         <span style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '3px 8px' }}>Stockholm</span>
         <span style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '3px 8px' }}>Est. 1938</span>
@@ -712,17 +720,27 @@ function AnnotationPanel({ room, linkedRoom, onClose, onGoLinkedRoom }) {
           background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)',
           borderRadius: 6, padding: '8px 20px', color: '#eab308',
           fontFamily: 'JetBrains Mono', fontSize: 9, letterSpacing: 2, cursor: 'pointer',
-        }}>
+          transition: 'all 0.2s ease',
+        }}
+        onMouseOver={e => { e.currentTarget.style.background = 'rgba(234,179,8,0.2)'; e.currentTarget.style.borderColor = 'rgba(234,179,8,0.6)' }}
+        onMouseOut={e => { e.currentTarget.style.background = 'rgba(234,179,8,0.1)'; e.currentTarget.style.borderColor = 'rgba(234,179,8,0.3)' }}
+        >
           [E] CLOSE
         </button>
         {linkedRoom && (
-          <button onClick={() => onGoLinkedRoom?.(linkedRoom)} style={{
+          <button onClick={handleLinkedRoomClick} style={{
             background: `${linkedRoom.color}14`,
             border: `1px solid ${linkedRoom.color}66`,
             borderRadius: 6, padding: '8px 20px', color: linkedRoom.color,
             fontFamily: 'JetBrains Mono', fontSize: 9, letterSpacing: 1, cursor: 'pointer',
-          }}>
-            ENTER {linkedRoom.name.toUpperCase()}
+            transition: 'all 0.2s ease',
+            flex: '1 1 auto',
+            minWidth: '140px',
+          }}
+          onMouseOver={e => { e.currentTarget.style.background = `${linkedRoom.color}33`; e.currentTarget.style.borderColor = `${linkedRoom.color}99` }}
+          onMouseOut={e => { e.currentTarget.style.background = `${linkedRoom.color}14`; e.currentTarget.style.borderColor = `${linkedRoom.color}66` }}
+          >
+            → {linkedRoom.name.toUpperCase()}
           </button>
         )}
       </div>
@@ -979,6 +997,7 @@ export default function MuseumPage() {
   const [nearAnnotation,   setNearAnnotation]    = useState(false)
   const [isMobile,         setIsMobile]          = useState(false)
   const [gateOpen,         setGateOpen]          = useState(false)
+  const [webglFailed,      setWebglFailed]       = useState(false)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
   const teleportRef = useRef(null)

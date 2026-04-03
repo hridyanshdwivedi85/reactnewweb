@@ -36,23 +36,23 @@ export default function HomePage() {
           <Hero />
         </div>
         
-        <div className="stacked-card" style={{ zIndex: 2 }}>
+        <div style={{ position: 'relative', zIndex: 2 }}>
           <Stats />
         </div>
         
-        <div className="stacked-card" style={{ zIndex: 3 }}>
+        <div style={{ position: 'relative', zIndex: 3 }}>
           <About />
         </div>
         
-        <div className="stacked-card" style={{ zIndex: 4 }}>
+        <div style={{ position: 'relative', zIndex: 4 }}>
           <Work />
         </div>
         
-        <div className="stacked-card" style={{ zIndex: 5 }}>
+        <div style={{ position: 'relative', zIndex: 5 }}>
           <Skills />
         </div>
         
-        <div className="stacked-card" style={{ zIndex: 6 }}>
+        <div style={{ position: 'relative', zIndex: 6 }}>
           <Contact />
         </div>
       </main>

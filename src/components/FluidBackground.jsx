@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -17,7 +17,6 @@ uniform vec2 uResolution;
 uniform vec3 uColor;
 varying vec2 vUv;
 
-// More advanced FBM and noise for liquid effect
 float random (in vec2 st) {
     return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
@@ -33,7 +32,7 @@ float noise (in vec2 st) {
     return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
-#define OCTAVES 6
+#define OCTAVES 4
 float fbm(in vec2 st) {
     float value = 0.0;
     float amplitude = 0.5;
@@ -51,41 +50,28 @@ void main() {
     vec2 st = gl_FragCoord.xy/uResolution.xy;
     st.x *= uResolution.x/uResolution.y;
 
-    // Mouse influence is very strong and localized
     vec2 mouseEffect = (uMouse * 2.0 - 1.0);
     mouseEffect.x *= uResolution.x/uResolution.y;
-    
-    // Distance field for mouse displacement
-    float mouseDist = distance(st, mouseEffect * 0.5 + 0.5 * vec2(uResolution.x/uResolution.y, 1.0));
-    float mouseInfluence = smoothstep(0.4, 0.0, mouseDist); // High interaction radius
 
-    // Layer 1: Base flow
+    float mouseDist = distance(st, mouseEffect * 0.5 + 0.5 * vec2(uResolution.x/uResolution.y, 1.0));
+    float mouseInfluence = smoothstep(0.42, 0.0, mouseDist);
+
     vec2 q = vec2(0.);
     q.x = fbm(st + 0.05 * uTime);
     q.y = fbm(st + vec2(1.0));
 
-    // Layer 2: Secondary distortion heavily influenced by mouse
     vec2 r = vec2(0.);
-    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.15 * uTime + mouseInfluence * 2.0);
-    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.126 * uTime - mouseInfluence * 2.0);
+    r.x = fbm(st + 1.0 * q + vec2(1.7, 9.2) + 0.14 * uTime + mouseInfluence * 1.8);
+    r.y = fbm(st + 1.0 * q + vec2(8.3, 2.8) + 0.12 * uTime - mouseInfluence * 1.8);
 
     float f = fbm(st + r);
 
-    // Color mixing to achieve premium responsive liquid look
-    vec3 baseColorDark = mix(vec3(0.0), uColor * 0.15, 0.5); // Very dark tint of the base color
-    vec3 highlightColor = mix(vec3(0.8, 0.85, 0.9), uColor + vec3(0.5), 0.3); // Bright liquid reflections
+    vec3 baseColorDark = mix(vec3(0.0), uColor * 0.14, 0.5);
+    vec3 highlightColor = mix(vec3(0.8, 0.85, 0.9), uColor + vec3(0.5), 0.3);
 
-    vec3 color = mix(
-        baseColorDark,
-        highlightColor,
-        clamp(f * f * 3.5, 0.0, 1.0)
-    );
-
-    // Vignette / Depth gradient
+    vec3 color = mix(baseColorDark, highlightColor, clamp(f * f * 3.2, 0.0, 1.0));
     color = mix(color, vec3(0.0), clamp(length(q) * 0.8, 0.0, 1.0));
-
-    // Dynamic contrast boost
-    color = color * color * (1.5 + mouseInfluence * 0.5); 
+    color = color * color * (1.35 + mouseInfluence * 0.45);
 
     gl_FragColor = vec4(color, 1.0);
 }
@@ -115,17 +101,17 @@ const FluidShaderMaterial = ({ baseColor }) => {
       mouse.current.x = e.clientX / window.innerWidth;
       mouse.current.y = 1.0 - (e.clientY / window.innerHeight);
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.material.uniforms.uTime.value = state.clock.getElapsedTime() * 0.4;
-      
-      meshRef.current.material.uniforms.uColor.value.lerp(targetColor, 0.05);
-      meshRef.current.material.uniforms.uMouse.value.lerp(mouse.current, 0.08);
-      meshRef.current.material.uniforms.uResolution.value.set(state.size.width, state.size.height);
+      const mat = meshRef.current.material;
+      mat.uniforms.uTime.value = state.clock.getElapsedTime() * 0.32;
+      mat.uniforms.uColor.value.lerp(targetColor, 0.04);
+      mat.uniforms.uMouse.value.lerp(mouse.current, 0.06);
+      mat.uniforms.uResolution.value.set(state.size.width, state.size.height);
     }
   });
 
@@ -143,14 +129,37 @@ const FluidShaderMaterial = ({ baseColor }) => {
   );
 };
 
-export default function FluidBackground({ baseColor = '#111111' }) {
+export default function FluidBackground({ baseColor = '#111111', lowPower = false }) {
+  const [isLowMotion, setIsLowMotion] = useState(lowPower);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setIsLowMotion(lowPower || media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [lowPower]);
+
+  if (isLowMotion) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          pointerEvents: 'none',
+          background: `radial-gradient(circle at 30% 20%, ${baseColor}66, transparent 45%), radial-gradient(circle at 70% 80%, ${baseColor}44, #000 60%)`,
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none', background: '#000' }}>
-      <Canvas
-        camera={{ position: [0, 0, 1] }}
-        gl={{ antialias: false, powerPreference: "high-performance" }}
-        dpr={[1, 2]}
-      >
+      <Canvas camera={{ position: [0, 0, 1] }} gl={{ antialias: false, powerPreference: 'high-performance' }} dpr={[1, 1.25]}>
         <FluidShaderMaterial baseColor={baseColor} />
       </Canvas>
     </div>

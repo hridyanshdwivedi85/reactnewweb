@@ -11,12 +11,29 @@ const BASE_URL       = '/assets/models/museum/'
 const ROOM_SPACING   = 48    // world units between room centres
 const ROOM_TARGET    = 42    // scale each room to this footprint
 const LOAD_RADIUS    = ROOM_SPACING * 2.2
-const EYE_HEIGHT     = 1.75
+const EYE_HEIGHT     = 2.2
 const JUMP_IMPULSE   = 6.0
 const GRAVITY        = -18
 const MOVE_SPEED     = 5.5
 const SPRINT_SPEED   = 11
 const INTERACT_DIST  = 4.5   // metres for E-key annotation
+const MOBILE_LOOK_SENSITIVITY = 0.0028
+
+const ROOM_LINKS = {
+  armoury: 'billiards',
+  billiards: 'dining',
+  dining: 'great_draw',
+  great_draw: 'serving',
+  serving: 'porcelain',
+  porcelain: 'picture',
+  picture: 'morning',
+  morning: 'small_draw',
+  small_draw: 'smoking',
+  smoking: 'stables',
+  stables: 'tack',
+  tack: 'vestibule',
+  vestibule: 'armoury',
+}
 
 /* World bounds: 4 cols (0-3) × 4 rows (0-3) */
 const MAX_X = 3 * ROOM_SPACING + 20
@@ -68,6 +85,10 @@ function nearestRoom(x, z) {
     if (d < bestDist) { bestDist = d; best = room }
   }
   return best
+}
+
+function getRoomById(id) {
+  return MUSEUM_ROOMS.find(room => room.id === id) || null
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -127,7 +148,7 @@ function RoomModel({ room }) {
 /* ═══════════════════════════════════════════════════════════
    ANNOTATION HOTSPOTS — discovered from room meshes
 ═══════════════════════════════════════════════════════════ */
-function RoomAnnotations({ room, playerPos, onInteract }) {
+function RoomAnnotations({ room, playerPos, isMobile }) {
   const { scene } = useGLTF(BASE_URL + room.file)
   const [hotspots, setHotspots] = useState([])
 
@@ -140,7 +161,7 @@ function RoomAnnotations({ room, playerPos, onInteract }) {
       // Filter meaningful named objects (skip generic geometry names)
       if (!name || name.match(/^(mesh|object|geometry|material|node|group|primitive|unnamed)/i)) return
       if (name.length < 3) return
-      if (spots.length >= 6) return // cap per room
+      if (spots.length >= (isMobile ? 3 : 6)) return // cap per room
 
       const box = new THREE.Box3().setFromObject(node)
       const pos = box.getCenter(new THREE.Vector3())
@@ -152,7 +173,7 @@ function RoomAnnotations({ room, playerPos, onInteract }) {
       })
     })
     setHotspots(spots)
-  }, [scene, room])
+  }, [scene, room, isMobile])
 
   return (
     <>
@@ -215,14 +236,14 @@ function RoomAnnotations({ room, playerPos, onInteract }) {
 /* ═══════════════════════════════════════════════════════════
    PROXIMITY LOADER
 ═══════════════════════════════════════════════════════════ */
-function ProximityRoom({ room, playerCoarse, playerPos, onAnnotationInteract }) {
+function ProximityRoom({ room, playerCoarse, playerPos, isMobile }) {
   const p = roomWorldPos(room)
   const dist = Math.hypot(playerCoarse.x - p.x, playerCoarse.z - p.z)
   if (dist > LOAD_RADIUS) return null
   return (
     <Suspense fallback={null}>
       <RoomModel room={room} />
-      <RoomAnnotations room={room} playerPos={playerPos} onInteract={onAnnotationInteract} />
+      <RoomAnnotations room={room} playerPos={playerPos} isMobile={isMobile} />
     </Suspense>
   )
 }
@@ -262,13 +283,15 @@ const _tmpVec  = new THREE.Vector3()
 const _fwdVec  = new THREE.Vector3()
 const _rgtVec  = new THREE.Vector3()
 const _moveVec = new THREE.Vector3()
+const _backVec = new THREE.Vector3()
+const _leftVec = new THREE.Vector3()
 
 function FirstPersonController({
   onRoomChange, onPositionChange, locked,
   movingRef, sprintRef, posRef, velYRef,
-  onInteractKey, teleportRef
+  onInteractKey, teleportRef, touchInputRef, isMobile
 }) {
-  const { camera, scene } = useThree()
+  const { camera } = useThree()
   const keys       = useRef({})
   const velocity   = useRef(new THREE.Vector3())
   const bobPhase   = useRef(0)
@@ -276,10 +299,13 @@ function FirstPersonController({
   const airborne   = useRef(false)
   const lastRoomId = useRef(null)
   const frameCount = useRef(0)
+  const pitch = useRef(-0.12)
+  const yaw = useRef(0)
 
   useEffect(() => {
     camera.position.set(0, EYE_HEIGHT, ROOM_SPACING * 0.3)
     camera.fov = 80
+    camera.rotation.set(pitch.current, yaw.current, 0, 'YXZ')
     camera.updateProjectionMatrix()
   }, [camera])
 
@@ -295,13 +321,24 @@ function FirstPersonController({
   }, [locked, onInteractKey])
 
   useFrame((_, dt) => {
-    if (!locked) return
+    const canControl = locked || isMobile
+    if (!canControl) return
     frameCount.current++
 
     const K      = keys.current
-    const sprint = K.ShiftLeft || K.ShiftRight
+    const touch = touchInputRef?.current
+    const sprint = K.ShiftLeft || K.ShiftRight || !!touch?.sprint
     const speed  = sprint ? SPRINT_SPEED : MOVE_SPEED
     sprintRef.current = sprint
+
+    if (isMobile && touch) {
+      yaw.current -= (touch.lookX || 0) * MOBILE_LOOK_SENSITIVITY
+      pitch.current -= (touch.lookY || 0) * MOBILE_LOOK_SENSITIVITY
+      pitch.current = Math.max(-1.25, Math.min(1.25, pitch.current))
+      camera.rotation.set(pitch.current, yaw.current, 0, 'YXZ')
+      touch.lookX = 0
+      touch.lookY = 0
+    }
 
     /* === MOVEMENT direction (camera-relative XZ) === */
     _fwdVec.set(0, 0, -1).applyQuaternion(camera.quaternion)
@@ -310,24 +347,26 @@ function FirstPersonController({
     _rgtVec.y = 0; _rgtVec.normalize()
 
     _moveVec.set(0, 0, 0)
-    if (K.KeyW || K.ArrowUp)    _moveVec.add(_fwdVec)
-    if (K.KeyS || K.ArrowDown)  _moveVec.sub(_fwdVec)
-    if (K.KeyA || K.ArrowLeft)  _moveVec.sub(_rgtVec)
-    if (K.KeyD || K.ArrowRight) _moveVec.add(_rgtVec)
+    if (K.KeyW || K.ArrowUp || touch?.forward)   _moveVec.add(_fwdVec)
+    if (K.KeyS || K.ArrowDown || touch?.back)    _moveVec.sub(_fwdVec)
+    if (K.KeyA || K.ArrowLeft || touch?.left)    _moveVec.sub(_rgtVec)
+    if (K.KeyD || K.ArrowRight || touch?.right)  _moveVec.add(_rgtVec)
 
     const isMoving = _moveVec.lengthSq() > 0.001
     movingRef.current = isMoving
     if (isMoving) _moveVec.normalize()
 
     /* === JUMP === */
-    if ((K.Space) && !airborne.current) {
+    if ((K.Space || touch?.jump) && !airborne.current) {
       velYRef.current = JUMP_IMPULSE
       airborne.current = true
     }
 
     /* === WALL COLLISION (every frame, 4 directions) === */
     if (isMoving && collisionMeshes.length > 0) {
-      const wallDirs = [_fwdVec.clone(), _rgtVec.clone(), _fwdVec.clone().negate(), _rgtVec.clone().negate()]
+      _backVec.copy(_fwdVec).negate()
+      _leftVec.copy(_rgtVec).negate()
+      const wallDirs = [_fwdVec, _rgtVec, _backVec, _leftVec]
       const origin   = camera.position.clone()
       origin.y -= 0.3 // check at waist height
       for (const dir of wallDirs) {
@@ -409,7 +448,7 @@ function FirstPersonController({
 /* ═══════════════════════════════════════════════════════════
    SCENE CONTENT
 ═══════════════════════════════════════════════════════════ */
-function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, playerPos, onAnnotationInteract, onInteractKey, teleportRef }) {
+function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, playerPos, onInteractKey, teleportRef, touchInputRef, isMobile }) {
   const movingRef = useRef(false)
   const sprintRef = useRef(false)
   const posRef    = useRef({ x: 0, y: 0, z: ROOM_SPACING * 0.3 })
@@ -438,7 +477,7 @@ function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, pl
           room={room}
           playerCoarse={playerCoarse}
           playerPos={playerPos}
-          onAnnotationInteract={onAnnotationInteract}
+          isMobile={isMobile}
         />
       ))}
 
@@ -454,6 +493,8 @@ function SceneContent({ onRoomChange, onPositionChange, locked, playerCoarse, pl
         velYRef={velYRef}
         onInteractKey={onInteractKey}
         teleportRef={teleportRef}
+        touchInputRef={touchInputRef}
+        isMobile={isMobile}
       />
     </>
   )
@@ -642,7 +683,7 @@ function Instructions({ onDismiss }) {
 /* ═══════════════════════════════════════════════════════════
    ANNOTATION PANEL (E-key popup)
 ═══════════════════════════════════════════════════════════ */
-function AnnotationPanel({ room, onClose }) {
+function AnnotationPanel({ room, linkedRoom, onClose, onGoLinkedRoom }) {
   if (!room) return null
   return (
     <div style={{
@@ -663,13 +704,25 @@ function AnnotationPanel({ room, onClose }) {
         <span style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '3px 8px' }}>Stockholm</span>
         <span style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 4, padding: '3px 8px' }}>Est. 1938</span>
       </div>
-      <button onClick={onClose} style={{
-        background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)',
-        borderRadius: 6, padding: '8px 20px', color: '#eab308',
-        fontFamily: 'JetBrains Mono', fontSize: 9, letterSpacing: 2, cursor: 'pointer',
-      }}>
-        [E] CLOSE
-      </button>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button onClick={onClose} style={{
+          background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)',
+          borderRadius: 6, padding: '8px 20px', color: '#eab308',
+          fontFamily: 'JetBrains Mono', fontSize: 9, letterSpacing: 2, cursor: 'pointer',
+        }}>
+          [E] CLOSE
+        </button>
+        {linkedRoom && (
+          <button onClick={() => onGoLinkedRoom?.(linkedRoom)} style={{
+            background: `${linkedRoom.color}14`,
+            border: `1px solid ${linkedRoom.color}66`,
+            borderRadius: 6, padding: '8px 20px', color: linkedRoom.color,
+            fontFamily: 'JetBrains Mono', fontSize: 9, letterSpacing: 1, cursor: 'pointer',
+          }}>
+            ENTER {linkedRoom.name.toUpperCase()}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -810,11 +863,59 @@ function InteractPrompt({ visible }) {
   )
 }
 
+function MobileControls({ touchInputRef, onInteract, onGateOpen }) {
+  const setDir = (key, val) => {
+    if (!touchInputRef.current) return
+    touchInputRef.current[key] = val
+  }
+
+  const bindHold = key => ({
+    onTouchStart: e => { e.preventDefault(); setDir(key, true) },
+    onTouchEnd:   e => { e.preventDefault(); setDir(key, false) },
+    onTouchCancel:e => { e.preventDefault(); setDir(key, false) },
+    onMouseDown:  e => { e.preventDefault(); setDir(key, true) },
+    onMouseUp:    e => { e.preventDefault(); setDir(key, false) },
+    onMouseLeave: () => setDir(key, false),
+  })
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 70, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', bottom: 20, left: 16, display: 'grid', gridTemplateColumns: '56px 56px 56px', gap: 6, pointerEvents: 'auto' }}>
+        <button {...bindHold('left')} style={mobileBtnStyle}>◀</button>
+        <button {...bindHold('forward')} style={mobileBtnStyle}>▲</button>
+        <button {...bindHold('right')} style={mobileBtnStyle}>▶</button>
+        <div />
+        <button {...bindHold('back')} style={mobileBtnStyle}>▼</button>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 20, right: 16, display: 'grid', gridTemplateColumns: '64px 64px', gap: 8, pointerEvents: 'auto' }}>
+        <button {...bindHold('jump')} style={mobileBtnStyle}>JUMP</button>
+        <button {...bindHold('sprint')} style={mobileBtnStyle}>RUN</button>
+        <button onClick={onInteract} style={mobileBtnStyle}>USE</button>
+        <button onClick={onGateOpen} style={mobileBtnStyle}>GATE</button>
+      </div>
+    </div>
+  )
+}
+
+const mobileBtnStyle = {
+  height: 52,
+  borderRadius: 10,
+  border: '1px solid rgba(255,255,255,0.2)',
+  background: 'rgba(0,0,0,0.65)',
+  color: '#fff',
+  fontFamily: 'JetBrains Mono, monospace',
+  fontSize: 11,
+  letterSpacing: 1,
+}
+
 /* ═══════════════════════════════════════════════════════════
    TELEPORT GATE MENU
 ═══════════════════════════════════════════════════════════ */
-function TeleportGate({ onTeleport }) {
-  const [open, setOpen] = useState(false)
+function TeleportGate({ onTeleport, open: controlledOpen, onOpenChange }) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = onOpenChange ?? setInternalOpen
 
   // Prevent event propagation so clicking the menu doesn't lock controls if overlay was used
   return (
@@ -873,17 +974,34 @@ export default function MuseumPage() {
   const [loaded,           setLoaded]            = useState(false)
   const [annotationRoom,   setAnnotationRoom]    = useState(null)
   const [nearAnnotation,   setNearAnnotation]    = useState(false)
+  const [isMobile,         setIsMobile]          = useState(false)
+  const [gateOpen,         setGateOpen]          = useState(false)
   const controlsRef = useRef()
   const lastCoarseRef = useRef({ x: 0, z: ROOM_SPACING * 0.3 })
   const teleportRef = useRef(null)
+  const touchInputRef = useRef({
+    forward: false, back: false, left: false, right: false,
+    sprint: false, jump: false, lookX: 0, lookY: 0
+  })
+  const lastTouchRef = useRef(null)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const handleTeleport = useCallback((room) => {
     teleportRef.current = roomWorldPos(room)
+    setGateOpen(false)
     // Small delay to ensure state sets before attempting lock
-    setTimeout(() => {
-      controlsRef.current?.lock()
-    }, 50)
-  }, [])
+    if (!isMobile) {
+      setTimeout(() => {
+        controlsRef.current?.lock()
+      }, 50)
+    }
+  }, [isMobile])
 
   const { progress } = useProgress()
   useEffect(() => { if (progress >= 100) setLoaded(true) }, [progress])
@@ -902,22 +1020,44 @@ export default function MuseumPage() {
 
   const handleDismiss = useCallback(() => {
     setShowInstructions(false)
-    setTimeout(() => controlsRef.current?.lock(), 100)
-  }, [])
+    if (!isMobile) {
+      setTimeout(() => controlsRef.current?.lock(), 100)
+    }
+  }, [isMobile])
 
   const handleInteractKey = useCallback(() => {
     if (annotationRoom) {
       setAnnotationRoom(null)
-      controlsRef.current?.lock()
+      if (!isMobile) controlsRef.current?.lock()
     } else if (currentRoom) {
       setAnnotationRoom(currentRoom)
-      controlsRef.current?.unlock()
+      if (!isMobile) controlsRef.current?.unlock()
     }
-  }, [annotationRoom, currentRoom])
+  }, [annotationRoom, currentRoom, isMobile])
 
   const closeAnnotation = useCallback(() => {
     setAnnotationRoom(null)
-    setTimeout(() => controlsRef.current?.lock(), 100)
+    if (!isMobile) setTimeout(() => controlsRef.current?.lock(), 100)
+  }, [isMobile])
+
+  const linkedRoom = annotationRoom ? getRoomById(ROOM_LINKS[annotationRoom.id]) : null
+
+  const handleTouchLookStart = useCallback((e) => {
+    if (!isMobile || e.touches.length !== 1) return
+    lastTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }, [isMobile])
+
+  const handleTouchLookMove = useCallback((e) => {
+    if (!isMobile || e.touches.length !== 1 || !lastTouchRef.current) return
+    e.preventDefault()
+    const t = e.touches[0]
+    touchInputRef.current.lookX += t.clientX - lastTouchRef.current.x
+    touchInputRef.current.lookY += t.clientY - lastTouchRef.current.y
+    lastTouchRef.current = { x: t.clientX, y: t.clientY }
+  }, [isMobile])
+
+  const handleTouchLookEnd = useCallback(() => {
+    lastTouchRef.current = null
   }, [])
 
   /* Near-annotation detection */
@@ -936,31 +1076,40 @@ export default function MuseumPage() {
           padding: '0 20px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', letterSpacing: 1,
           display: 'flex', alignItems: 'center'
         }}>← Hub</Link>
-        {loaded && !showInstructions && <TeleportGate onTeleport={handleTeleport} />}
+        {loaded && !showInstructions && <TeleportGate onTeleport={handleTeleport} open={isMobile ? gateOpen : undefined} onOpenChange={isMobile ? setGateOpen : undefined} />}
       </div>
 
       {/* 3D Canvas */}
-      <div style={{ position: 'absolute', inset: 0 }}>
+      <div
+        style={{ position: 'absolute', inset: 0, touchAction: isMobile ? 'none' : 'auto' }}
+        onTouchStart={handleTouchLookStart}
+        onTouchMove={handleTouchLookMove}
+        onTouchEnd={handleTouchLookEnd}
+      >
         <Canvas
           shadows
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          dpr={isMobile ? [0.65, 1.05] : [1, 1.5]}
+          gl={{ antialias: !isMobile, powerPreference: 'high-performance' }}
           camera={{ position: [0, EYE_HEIGHT, ROOM_SPACING * 0.3], fov: 80, near: 0.05, far: 600 }}
         >
-          <PointerLockControls
-            ref={controlsRef}
-            onLock={()   => setLocked(true)}
-            onUnlock={() => setLocked(false)}
-          />
+          {!isMobile && (
+            <PointerLockControls
+              ref={controlsRef}
+              onLock={()   => setLocked(true)}
+              onUnlock={() => setLocked(false)}
+            />
+          )}
           <Suspense fallback={null}>
             <SceneContent
               onRoomChange={handleRoomChange}
               onPositionChange={handlePositionChange}
-              locked={locked}
+              locked={isMobile ? true : locked}
               playerCoarse={playerCoarse}
               playerPos={playerPos}
-              onAnnotationInteract={handleInteractKey}
               onInteractKey={handleInteractKey}
               teleportRef={teleportRef}
+              touchInputRef={touchInputRef}
+              isMobile={isMobile}
             />
           </Suspense>
         </Canvas>
@@ -971,16 +1120,16 @@ export default function MuseumPage() {
 
       {loaded && !showInstructions && (
         <>
-          <Crosshair visible={locked} />
+          <Crosshair visible={!isMobile && locked} />
           <RoomOverlay room={currentRoom} />
           <Minimap playerPos={playerPos} currentRoom={currentRoom} />
 
-          {locked && nearAnnotation && !annotationRoom && (
+          {(isMobile || locked) && nearAnnotation && !annotationRoom && (
             <InteractPrompt visible />
           )}
 
           {/* Click-to-lock */}
-          {!locked && !annotationRoom && (
+          {!isMobile && !locked && !annotationRoom && (
             <div
               onClick={() => controlsRef.current?.lock()}
               style={{
@@ -1020,7 +1169,11 @@ export default function MuseumPage() {
 
       {/* Annotation panel — always rendered on top */}
       {annotationRoom && (
-        <AnnotationPanel room={annotationRoom} onClose={closeAnnotation} />
+        <AnnotationPanel room={annotationRoom} linkedRoom={linkedRoom} onClose={closeAnnotation} onGoLinkedRoom={handleTeleport} />
+      )}
+
+      {loaded && !showInstructions && isMobile && (
+        <MobileControls touchInputRef={touchInputRef} onInteract={handleInteractKey} onGateOpen={() => setGateOpen(v => !v)} />
       )}
     </div>
   )

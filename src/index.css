@@ -40,7 +40,11 @@ a[href*="unicorn.studio"] { display: none !important; }
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  background: #05050d;
+}
 body {
   background: linear-gradient(-45deg, #05050d, #140b2e, #09182b, #05050d);
   background-size: 400% 400%;
@@ -50,6 +54,11 @@ body {
   font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;
+  min-height: 100vh;
+}
+#root {
+  background: transparent;
+  min-height: 100vh;
 }
 @media (max-width: 900px) {
   body { animation: none; background-size: cover; }
@@ -245,7 +254,8 @@ img { max-width: 100%; }
   max-width: var(--cMaxWidth, 1920px);
   margin: auto;
   position: relative;
-  height: 100vh;
+  height: 100svh;
+  min-height: 100dvh;
 }
 
 .landing-container {
@@ -616,7 +626,7 @@ h2.landing-info-h2 {
   .landing-info h3 { font-size: 15px; }
   .landing-info h2 { font-size: 28px; line-height: 32px; }
   h2.landing-info-h2 { font-size: 30px; }
-  .landing-intro { top: 8%; }
+  .landing-intro { top: 94px; }
 }
 
 @media screen and (min-width: 500px) {

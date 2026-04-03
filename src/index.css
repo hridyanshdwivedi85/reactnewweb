@@ -1666,7 +1666,7 @@ h2.landing-info-h2 {
 }
 
 .hero-cmd-box {
-  width: min(420px, 32vw);
+  width: min(520px, 90vw);
   border-radius: 16px;
   border: 1px solid rgba(20, 184, 166, 0.35);
   background: linear-gradient(180deg, rgba(7, 16, 24, 0.92), rgba(6, 9, 16, 0.85));
@@ -1691,29 +1691,26 @@ h2.landing-info-h2 {
 .hero-dot-max { background: #28c840; }
 .hero-cmd-title {
   margin-left: 8px;
-  font-family: 'Fira Code', var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.16em;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(210, 255, 247, 0.78);
-  text-shadow: 0 0 10px rgba(45, 212, 191, 0.26);
+  color: rgba(255, 255, 255, 0.6);
 }
 .hero-cmd-body {
   padding: 16px;
-  font-family: 'Fira Code', var(--font-mono);
+  font-family: var(--font-mono);
   color: #d5f7f4;
   font-size: clamp(0.8rem, 1.5vw, 1rem);
   line-height: 1.8;
 }
 .hero-prompt { color: #2dd4bf; margin-right: 8px; }
 .hero-cmd-output {
-  font-family: 'Space Grotesk', var(--font-head);
-  font-size: clamp(1.2rem, 2.3vw, 1.85rem);
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 3.8vw, 2.2rem);
   font-weight: 800;
-  color: #6fffe8;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow: 0 0 18px rgba(45, 212, 191, 0.28);
+  color: #5eead4;
+  letter-spacing: 0.06em;
 }
 .hero-caret {
   color: #99f6e4;

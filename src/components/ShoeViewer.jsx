@@ -174,7 +174,7 @@ export default function ShoeViewer({ isMobile }) {
       {/* 3D Canvas */}
       <div style={{ position: 'absolute', inset: 0 }}>
         {isLoading && <LoaderFallback accent={shoe.accent} />}
-        <Canvas camera={{ position: [0, 0.5, 3.5], fov: 42 }} shadows gl={{ antialias: true, alpha: true }}>
+        <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.5, 3.5], fov: 42 }} shadows gl={{ antialias: false, alpha: true, powerPreference: 'low-power' }}>
           <Suspense fallback={null}>
             <Scene idx={idx} />
           </Suspense>

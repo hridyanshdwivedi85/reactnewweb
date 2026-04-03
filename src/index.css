@@ -231,6 +231,7 @@ img { max-width: 100%; }
   .navbar { padding: 0 20px; }
   .navbar-links { display: none; }
   .navbar-hamburger { display: flex; }
+  .navbar-cta a { display: none !important; }
 }
 
 /* ─────────────────────────────────────────────────
@@ -803,6 +804,76 @@ h2.landing-info-h2 {
 .work-tag { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; }
 .work-card-link { font-family: var(--font-head); font-size: 0.8rem; font-weight: 700; color: var(--accent-violet); letter-spacing: 0.05em; transition: gap 0.2s; }
 .work-card-link:hover { gap: 8px; }
+
+.work-list-item {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.work-list-item:hover {
+  border-color: color-mix(in oklab, var(--project-accent) 45%, var(--border));
+  transform: translateX(8px);
+  background: var(--bg-elevated);
+}
+.work-list-number {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  min-width: 24px;
+}
+.work-list-content { flex: 1; min-width: 0; }
+.work-list-category {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--project-accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.work-list-title {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.work-list-desc { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.55; }
+.work-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+.work-list-arrow { font-size: 1.2rem; color: var(--project-accent); opacity: 0.7; }
+.work-list-stack { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; max-width: 200px; }
+.work-list-tag {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: var(--project-accent);
+  background: color-mix(in oklab, var(--project-accent) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--project-accent) 24%, transparent);
+  letter-spacing: 0.06em;
+}
+@media (max-width: 900px) {
+  .work-list-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+  .work-list-item:hover { transform: none; }
+  .work-list-meta { width: 100%; align-items: flex-start; }
+  .work-list-stack { justify-content: flex-start; max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .work-list-title { font-size: 1rem; }
+  .work-list-desc { font-size: 0.78rem; }
+}
 
 /* ─────────────────────────────────────────────────
    SKILLS SECTION
@@ -1400,6 +1471,23 @@ h2.landing-info-h2 {
 .text-center { text-align: center; }
 .hidden { display: none !important; }
 @media (max-width: 900px) { .section-container { padding: 0 24px; } }
+
+.hero-fallback-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(124, 58, 237, 0.35), transparent 40%),
+    radial-gradient(circle at 80% 75%, rgba(6, 182, 212, 0.2), transparent 45%),
+    linear-gradient(135deg, rgba(7, 8, 20, 0.8), rgba(10, 16, 32, 0.65));
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body { animation: none; }
+  .reveal-box, .work-list-item, .skill-chip, .nav-pill, .btn-primary, .btn-outline { transition: none !important; }
+  .about-avatar-ring, .about-avatar-ring-2, .about-badge-dot { animation: none !important; }
+}
 
 /* ─────────────────────────────────────────────────
    LABS PAGE — FULL SCREEN SLIDER v2
@@ -2042,4 +2130,3 @@ h2.landing-info-h2 {
   .ptf-hero-stats { gap: 16px; }
   .ptf-cta { padding: 40px 16px 60px; }
 }
-

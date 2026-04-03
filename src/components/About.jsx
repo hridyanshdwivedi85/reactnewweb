@@ -14,17 +14,17 @@ const LINKEDIN_URL = 'https://in.linkedin.com/in/hridyanshd85'
 const AVATAR_URL = `https://api.dicebear.com/7.x/adventurer/svg?seed=Hridyansh&backgroundColor=0a0a0f&eyebrows=variant08&eyes=variant17&mouth=variant26&skinColor=b68655&hair=long01&hairColor=2c1b18&radius=50`
 
 const timeline = [
-  { year: '2024–Now', role: 'System Architect & Developer', company: 'Independent', desc: 'Building high-conversion digital products, 3D portfolios, and custom SaaS tools.', color: '#7c3aed' },
-  { year: '2023', role: 'Full-Stack Developer', company: 'InSeconds Pro', desc: 'Architected a cross-platform iPhone speed-testing tool — desktop + Chrome extension.', color: '#2563eb' },
-  { year: '2022', role: 'Frontend Engineer', company: 'Projects', desc: 'Shipped multiple web projects including celestial 3D engine, branding tools, and analytics dashboards.', color: '#059669' },
-  { year: '2021', role: 'Developer (Started)', company: 'Self-Taught', desc: 'Began deep-diving into JavaScript, Three.js, and mobile-first design systems.', color: '#d97706' },
+  { year: 'Present', role: 'System Architect & Vibe Coder', company: 'Independent', desc: 'Pioneering advanced "vibe coding" methodologies. Architecting and deploying sophisticated custom tools and AI-driven workflows to engineer modern software solutions.', color: '#7c3aed' },
+  { year: '2023 – 2024', role: 'Founder & Lead Generation Specialist', company: 'Digital Consulting', desc: 'Engineered scalable digital marketing strategies as an independent consultant, successfully driving and converting 10,000+ high-quality B2B leads.', color: '#2563eb' },
+  { year: '2022', role: 'Business Development Manager', company: 'B2B Sales', desc: 'Spearheaded full-cycle sales processes. Drove substantial revenue growth through strategic deal closures and high-level stakeholder negotiations.', color: '#059669' },
+  { year: '2021', role: 'Business Development Executive', company: 'International Sales', desc: 'Managed global client relations across the US and Canada. Successfully generated and orchestrated high-value client acquisition meetings.', color: '#d97706' },
 ]
 
 const skills = [
-  { cat: 'Frontend', items: ['React', 'Three.js', 'GSAP', 'CSS', 'Tailwind'] },
-  { cat: 'Backend', items: ['Node.js', 'Express', 'REST APIs', 'Firebase'] },
-  { cat: 'Tools', items: ['Vite', 'Git', 'Figma', 'Vercel'] },
-  { cat: 'Creative', items: ['WebGL', 'Canvas API', 'Animation', 'Branding'] },
+  { cat: 'Frontend', items: ['✨ React', '🧊 Three.js', '🎬 GSAP', '🎨 CSS', '🌊 Tailwind'] },
+  { cat: 'Backend', items: ['🟢 Node.js', '🚂 Express', '🌐 REST APIs', '🔥 Firebase'] },
+  { cat: 'Tools', items: ['⚡ Vite', '🐙 Git', '🖋️ Figma', '▲ Vercel'] },
+  { cat: 'Creative', items: ['🔮 WebGL', '🖌️ Canvas API', '🪄 Animation', '🏷️ Branding'] },
 ]
 
 function useReveal() {
@@ -79,7 +79,7 @@ export default function About() {
               </div>
 
               <div className="li-card-stats">
-                {[['500+', 'Connections'], ['12+', 'Projects'], ['3+', 'Years']].map(([n, l]) => (
+                {[['500+', 'Connections'], ['4k+', 'Followers'], ['3+', 'Years']].map(([n, l]) => (
                   <div key={l} className="li-stat">
                     <span className="li-stat-n">{n}</span>
                     <span className="li-stat-l">{l}</span>
@@ -90,7 +90,7 @@ export default function About() {
               <div className="li-card-actions">
                 <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" className="li-btn li-btn-primary">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2" fill="currentColor"/></svg>
-                  Connect on LinkedIn
+                  LinkedIn
                 </a>
                 <a href="mailto:mannathridyanshdwivedi85@gmail.com" className="li-btn li-btn-outline">
                   ✉ Email Me
@@ -123,19 +123,14 @@ export default function About() {
             <div className="about-intro">
               <div className="about-section-tag">// ABOUT ME</div>
               <h2 className="about-heading">
-                I Build Systems<br />
-                <span className="about-heading-accent">That Scale.</span>
+                Code that Drives<br />
+                <span className="about-heading-accent">Revenue.</span>
               </h2>
               <p className="about-bio">
-                I'm a <strong>System Architect and Developer</strong> based in India, specializing in
-                high-performance web products, 3D experiences, and conversion-led design.
-                From custom WebGL engines to full-stack SaaS tools, I engineer things that work
-                at scale — both technically and commercially.
+                I am a <strong>System Architect, Vibe Coder, and Tech Innovator</strong> based in India, brilliantly bridging the gap between high-level sales strategy and advanced software engineering. Before transitioning entirely to technology, I established a formidable foundation in international business development, personally orchestrating the sale of over 10,000+ digital marketing leads.
               </p>
               <p className="about-bio" style={{ marginTop: '12px' }}>
-                I'm obsessed with the intersection of <strong>technical depth</strong> and{' '}
-                <strong>design quality</strong> — believing that the best software is both elegant
-                under the hood and beautiful on the surface.
+                Today, I leverage advanced AI workflows and <strong>"vibe coding"</strong> logic to engineer custom SaaS tools, high-conversion web platforms, and breathtaking 3D web experiences. I believe the most successful software must be technically elegant under the hood while remaining relentlessly focused on commercial goals.
               </p>
             </div>
           </RevealBox>

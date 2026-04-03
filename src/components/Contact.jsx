@@ -11,15 +11,11 @@ export default function Contact() {
             Open to freelance briefs, full-time roles, and ambitious collaborations.
             I respond within 24 hours.
           </p>
-          <a href="mailto:mannathridyanshdwivedi85@gmail.com" className="contact-email">
-            mannathridyanshdwivedi85@gmail.com
-          </a>
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href="mailto:mannathridyanshdwivedi85@gmail.com" className="btn-primary">
-              ✉ Send Email
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
+            <a href="https://wa.me/916393973524" className="btn-primary" target="_blank" rel="noreferrer">
+              💬 WhatsApp Me
             </a>
-            <a href="https://in.linkedin.com/in/hridyanshd85" target="_blank" rel="noreferrer"
-              className="btn-outline">
+            <a href="https://in.linkedin.com/in/hridyanshd85" target="_blank" rel="noreferrer" className="btn-outline">
               LinkedIn →
             </a>
           </div>

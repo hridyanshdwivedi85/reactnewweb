@@ -130,19 +130,61 @@ function CompilerVisualizer({ active }) {
 // 4. Spatial Audio (Wobble Torus)
 function SpatialAudioVisualizer({ active }) {
   const torusRef = useRef()
+  const torus2Ref = useRef()
+  const particlesRef = useRef()
+  
+  const particles = React.useMemo(() => {
+    const p = new Float32Array(500 * 3)
+    for(let i=0; i<500*3; i++) {
+      p[i] = (Math.random() - 0.5) * 8
+    }
+    return p
+  }, [])
+
   useFrame((state, delta) => {
-    if (active && torusRef.current) {
+    if (active && torusRef.current && torus2Ref.current) {
+      const t = state.clock.elapsedTime
+      
+      // Outer Torus
       torusRef.current.rotation.z += delta * 0.5
-      torusRef.current.rotation.x = Math.sin(state.clock.elapsedTime) * 0.3
+      torusRef.current.rotation.x = Math.sin(t) * 0.3
+      
+      // Inner Torus
+      torus2Ref.current.rotation.y -= delta * 0.8
+      torus2Ref.current.rotation.x = Math.cos(t) * 0.4
+      
+      // Audio reaction simulation
+      const pulse = 1 + Math.sin(t * 8) * 0.05 + Math.sin(t * 24) * 0.02
+      torusRef.current.scale.setScalar(pulse)
+      torus2Ref.current.scale.setScalar(pulse * 0.6)
+      
+      // Particles reacting
+      if (particlesRef.current) {
+        particlesRef.current.rotation.y += delta * 0.1
+        particlesRef.current.scale.setScalar(1 + Math.sin(t * 4) * 0.02)
+      }
     }
   })
+  
   return (
-    <Float speed={1} rotationIntensity={1} floatIntensity={2}>
-      <mesh ref={torusRef}>
-        <torusKnotGeometry args={[1.5, 0.4, 128, 32]} />
-        <MeshWobbleMaterial color="#a855f7" factor={1} speed={active ? 3 : 0.5} metalness={0.6} roughness={0.1} emissive="#581c87" emissiveIntensity={0.5} />
-      </mesh>
-    </Float>
+    <group>
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
+        <mesh ref={torusRef}>
+          <torusKnotGeometry args={[1.8, 0.2, 150, 32]} />
+          <MeshWobbleMaterial color="#a855f7" factor={0.5} speed={active ? 2 : 0.5} metalness={0.9} roughness={0.1} emissive="#581c87" emissiveIntensity={0.4} wireframe={true} />
+        </mesh>
+        <mesh ref={torus2Ref}>
+          <torusKnotGeometry args={[1.2, 0.4, 200, 32]} />
+          <MeshWobbleMaterial color="#d8b4fe" factor={1.2} speed={active ? 4 : 0.5} metalness={0.6} roughness={0.2} emissive="#7c3aed" emissiveIntensity={0.8} />
+        </mesh>
+      </Float>
+      <points ref={particlesRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" count={500} array={particles} itemSize={3} />
+        </bufferGeometry>
+        <pointsMaterial color="#e9d5ff" size={0.06} sizeAttenuation transparent opacity={0.5} />
+      </points>
+    </group>
   )
 }
 
@@ -349,6 +391,7 @@ export default function LabsPage() {
           ))}
         </div>
       </div>
+
 
       {/* ── NAVIGATION CONTROLS (BOTTOM HUD) ── */}
       <div style={{ position: 'absolute', bottom: isMobile ? '18px' : '40px', left: '0', width: '100%', padding: isMobile ? '0 14px' : '0 5%', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-end' : 'center', zIndex: 10, boxSizing: 'border-box' }}>

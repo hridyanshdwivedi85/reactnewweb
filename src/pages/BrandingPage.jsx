@@ -15,37 +15,44 @@ const slides = [
     bg: 'url(assets/images/bg_nike.png)',
     bgStyle: { filter: 'grayscale(100%) contrast(1.2) brightness(0.25)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' },
     fluidColor: '#a0a0a0',
+    cardBg: 'rgba(20, 20, 20, 0.4)',
   },
   {
     id: 'ps5', theme: 'dark', cursor: '🎮',
     bgVideo: 'https://cdn.pixabay.com/video/2020/05/25/40149-425254922_tiny.mp4',
     bgStyle: { filter: 'saturate(1.5) contrast(1.2) brightness(0.2)' },
     fluidColor: '#1e3a8a',
+    cardBg: 'rgba(5, 10, 40, 0.4)',
   },
   {
     id: 'coke', theme: 'light',
     slideStyle: { background: '#E50014' },
     fluidColor: '#7a000a',
+    cardBg: 'rgba(229, 0, 20, 0.1)',
   },
   {
     id: 'apple', theme: 'light',
     slideStyle: { background: '#f5f5f7' },
     fluidColor: '#9ca3af',
+    cardBg: 'rgba(240, 240, 245, 0.3)',
   },
   {
     id: 'on', theme: 'dark',
     slideStyle: { background: '#0A0A0A', color: 'white' },
     fluidColor: '#b45309',
+    cardBg: 'rgba(15, 10, 0, 0.4)',
   },
   {
     id: 'ceta', theme: 'light',
     slideStyle: { background: '#ffffff', color: '#005a9c' },
     fluidColor: '#1d4ed8',
+    cardBg: 'rgba(255, 255, 255, 0.4)',
   },
   {
     id: 'carls', theme: 'dark',
     slideStyle: { background: '#001B0E', color: '#D4AF37' },
     fluidColor: '#15803d',
+    cardBg: 'rgba(0, 25, 10, 0.4)',
   },
   {
     id: 'bmw', theme: 'dark',
@@ -53,6 +60,7 @@ const slides = [
     bgStyle: { filter: 'brightness(0.25) contrast(1.3) saturate(0.8)' },
     slideStyle: { background: '#0a0a0a', color: 'white' },
     fluidColor: '#1d4ed8',
+    cardBg: 'rgba(10, 15, 25, 0.4)',
   },
   {
     id: 'xbox', theme: 'dark',
@@ -60,6 +68,7 @@ const slides = [
     bgStyle: { filter: 'brightness(0.22) saturate(1.5) contrast(1.2)' },
     slideStyle: { background: '#050f05', color: 'white' },
     fluidColor: '#166534',
+    cardBg: 'rgba(5, 25, 10, 0.3)',
   },
   {
     id: 'gta6', theme: 'dark',
@@ -67,6 +76,7 @@ const slides = [
     bgStyle: { filter: 'brightness(0.35) saturate(2) contrast(1.15)', objectFit: 'cover' },
     slideStyle: { background: '#06060a', color: 'white' },
     fluidColor: '#be185d',
+    cardBg: 'rgba(15, 5, 15, 0.4)',
   },
 ]
 
@@ -125,11 +135,11 @@ function CokeSlide({ active, isMobile }) {
         <div className="br-coke-ice" />
         <img src="assets/images/coke_can.png" className="float-fast br-coke-can" alt="Coca-Cola" />
       </div>
-      <div className="br-coke-right">
-        <div className="br-coke-kicker">EST. 1886 · ORIGINAL TASTE</div>
-        <div className="br-coke-brand">Coca-Cola</div>
-        <h2 className="br-huge-title" style={{ color: '#fff', fontSize: isMobile ? '2.5rem' : 'clamp(3rem, 6vw, 5rem)' }}>Open<br />Happiness.</h2>
-        <p className="br-sarcastic br-coke-copy" style={{ fontSize: isMobile ? '0.75rem' : '0.9rem' }}>
+      <div className="br-coke-right" style={{ display: 'flex', flexDirection: 'column', gap: '24px', justifyContent: 'center' }}>
+        <div className="br-coke-kicker" style={{ marginBottom: '5px' }}>EST. 1886 · ORIGINAL TASTE</div>
+        <div className="br-coke-brand" style={{ marginBottom: '10px' }}>Coca-Cola</div>
+        <h2 className="br-huge-title" style={{ color: '#fff', fontSize: isMobile ? '2.5rem' : 'clamp(3rem, 6vw, 5rem)', lineHeight: 1.1, marginBottom: '15px' }}>Open<br />Happiness.</h2>
+        <p className="br-sarcastic br-coke-copy" style={{ fontSize: isMobile ? '0.75rem' : '0.9rem', marginTop: '10px' }}>
           "Scientifically proven to make pizza taste 300% better."
         </p>
         <div className="br-coke-meta">
@@ -446,7 +456,7 @@ export default function BrandingPage() {
           position: 'relative',
           width: isMobile ? '100%' : '95vw',
           height: isMobile ? '100%' : '90vh',
-          background: isMobile ? 'transparent' : 'rgba(10, 10, 15, 0.4)',
+          background: isMobile ? 'transparent' : s.cardBg || 'rgba(10, 10, 15, 0.4)',
           backdropFilter: isMobile ? 'none' : 'blur(24px)',
           WebkitBackdropFilter: isMobile ? 'none' : 'blur(24px)',
           border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',

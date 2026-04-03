@@ -1688,7 +1688,9 @@ h2.landing-info-h2 {
 }
 
 .hero-cmd-box {
-  width: min(420px, 85vw);
+  width: min(380px, 90vw); /* Reduced size */
+  max-width: calc(100vw - 40px); /* Ensure it does not touch edges */
+  margin: 0 auto; /* Center by default if needed */
   border-radius: 16px;
   border: 1px solid rgba(20, 184, 166, 0.35);
   background: linear-gradient(180deg, rgba(7, 16, 24, 0.92), rgba(6, 9, 16, 0.85));
@@ -1729,7 +1731,7 @@ h2.landing-info-h2 {
 .hero-prompt { color: #2dd4bf; margin-right: 8px; }
 .hero-cmd-output {
   font-family: var(--font-head);
-  font-size: clamp(1.4rem, 3.8vw, 2.2rem);
+  font-size: clamp(1.2rem, 3.5vw, 2.0rem); /* slightly smaller font */
   font-weight: 800;
   color: #5eead4;
   letter-spacing: 0.06em;
@@ -1745,7 +1747,7 @@ h2.landing-info-h2 {
     bottom: 22px;
   }
   .hero-cmd-box {
-    width: min(85vw, 380px);
+    width: min(90vw, 340px); /* Reduced for tablet */
   }
   .hero-cmd-head {
     padding: 8px 11px;
@@ -1765,7 +1767,7 @@ h2.landing-info-h2 {
     bottom: 8px;
   }
   .hero-cmd-box {
-    width: min(84vw, 310px);
+    width: min(90vw, 290px); /* Reduced for small mobile */
   }
   .hero-cmd-body {
     padding: 10px;
